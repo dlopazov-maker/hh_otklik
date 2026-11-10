@@ -8,66 +8,68 @@
 :root{color-scheme:dark;--bg:#10131b;--panel:#191f2b;--panel2:#202938;--line:#30394a;--text:#edf1f7;--muted:#9ca8ba;--accent:#77a9ff;--danger:#ff8585;--green:#8bd5a7}
 *{box-sizing:border-box}body{margin:0;padding:26px;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
 main{max-width:1380px;margin:0 auto}h1{font-size:27px;margin:0 0 5px}.subtitle{color:var(--muted);margin-bottom:22px}
-.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
-button{background:var(--accent);color:#101827;border:0;border-radius:9px;padding:10px 15px;font:inherit;font-weight:700;cursor:pointer}button:disabled{opacity:.6;cursor:wait}
+.toolbar{display:flex;gap:10px;align-items:center;justify-content:flex-end;flex-wrap:wrap;margin-bottom:16px}
+button{background:var(--accent);color:#101827;border:0;border-radius:9px;padding:10px 15px;font:inherit;font-weight:700;cursor:pointer}button:disabled{opacity:.6;cursor:wait}select{background:#111722;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font:inherit;max-width:100%}#platformFilter{display:block;width:100%;margin:10px 0 2px}
 .status{padding:12px 15px;background:var(--panel);border:1px solid var(--line);border-radius:10px;margin-bottom:18px;overflow-wrap:anywhere}.status.error{border-color:#784747;color:#ffd1d1}
 .cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:18px}
 .card,.panel{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:18px;min-width:0}
 .card-title{color:var(--muted);font-size:14px;font-weight:650}.big{font-size:34px;font-weight:750;line-height:1.2;margin:8px 0 15px;font-variant-numeric:tabular-nums}
 .substats{display:grid;grid-template-columns:1fr 1fr;gap:9px}.substat{background:var(--panel2);border-radius:9px;padding:10px}.substat span{display:block;color:var(--muted);font-size:12px}.substat strong{font-size:20px;font-variant-numeric:tabular-nums}
-.panel{margin-bottom:18px}.panel-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px}.panel h2{font-size:18px;margin:0}.hint{color:var(--muted);font-size:12px;margin-top:4px}
+.panel{margin-bottom:18px}.top-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.top-grid .panel{min-width:0}.panel-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px}.panel h2{font-size:18px;margin:0}.hint{color:var(--muted);font-size:12px;margin-top:4px}
 .chart-scroll{overflow-x:auto;overflow-y:hidden;border-radius:8px}canvas{display:block;height:370px}
 .legend{display:flex;gap:16px;flex-wrap:wrap;color:var(--muted);font-size:12px;margin-top:8px}.legend i{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--accent);margin-right:6px}
 .company-tools{display:flex;gap:10px;align-items:center;margin:12px 0}.company-tools input{flex:1;min-width:180px;background:#111722;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font:inherit}
 .table-scroll{overflow:auto;max-height:520px;border:1px solid var(--line);border-radius:9px}table{width:100%;border-collapse:collapse;min-width:380px}th,td{text-align:left;padding:10px 13px;border-bottom:1px solid var(--line)}th{position:sticky;top:0;background:#222b3a;color:#dce5f2;z-index:1}td:last-child,th:last-child{text-align:right;font-variant-numeric:tabular-nums}tbody tr:hover{background:var(--panel2)}tfoot{font-weight:700;background:#222b3a}tfoot td{border:0}.empty{padding:24px;text-align:center;color:var(--muted)}
 .meta{color:var(--muted);font-size:12px;margin:12px 2px 0}
-@media(max-width:800px){body{padding:15px}.cards{grid-template-columns:1fr}.big{font-size:30px}.panel{padding:14px}.panel-head{display:block}}
+@media(max-width:800px){body{padding:15px}.cards{grid-template-columns:1fr}.top-grid{grid-template-columns:1fr}.big{font-size:30px}.panel{padding:14px}.panel-head{display:block}}
 </style>
 </head>
 <body>
 <main>
   <h1>Аналитика откликов</h1>
   <div class="subtitle">Статистика по датам откликов и компаниям из Google Sheets</div>
-  <div class="toolbar">
-    <button id="refresh" type="button">Обновить данные</button>
-    <span class="hint">Источник: колонка A — компания, колонка B — дата отклика</span>
-  </div>
+  <div class="toolbar"><button id="refresh" type="button">Обновить данные</button></div>
   <div id="status" class="status">Загружаю данные из Google Sheets…</div>
 
   <section class="cards">
     <article class="card">
       <div class="card-title">Всего откликов за весь период</div>
+      <select id="platformFilter" aria-label="Фильтр по площадке" disabled><option value="__all__">Все площадки</option></select>
       <div class="big" id="total">—</div>
       <div class="hint">Одна заполненная дата = один отклик</div>
     </article>
     <article class="card">
-      <div class="card-title">Среднее количество откликов в день · месяц</div>
+      <div class="card-title">Отклики в месяц:</div>
       <div class="substats">
-        <div class="substat"><span>Текущий месяц</span><strong id="currentMonth">—</strong></div>
-        <div class="substat"><span>Предыдущий месяц</span><strong id="previousMonth">—</strong></div>
+        <div class="substat"><span>Текущий месяц · всего</span><strong id="currentMonth">—</strong></div>
+        <div class="substat"><span>Предыдущий месяц · всего</span><strong id="previousMonth">—</strong></div>
       </div>
     </article>
     <article class="card">
-      <div class="card-title">Среднее количество откликов в день · неделя</div>
+      <div class="card-title">Отклики в неделю:</div>
       <div class="substats">
-        <div class="substat"><span>Текущая неделя</span><strong id="currentWeek">—</strong></div>
-        <div class="substat"><span>Предыдущая неделя</span><strong id="previousWeek">—</strong></div>
+        <div class="substat"><span>Текущая неделя · всего</span><strong id="currentWeek">—</strong></div>
+        <div class="substat"><span>Предыдущая неделя · всего</span><strong id="previousWeek">—</strong></div>
       </div>
     </article>
   </section>
 
   <section class="panel">
     <div class="panel-head">
-      <div><h2>Динамика откликов по дням</h2><div class="hint">Каждая неделя разбита на дни с понедельника по воскресенье · вертикальная ось — число откликов</div></div>
+      <div><h2>Динамика откликов</h2><div class="hint" id="chartHint">Понедельные итоги, начиная с 21.09.2026</div></div>
+      <select id="chartMode" aria-label="Группировка диаграммы"><option value="weeks" selected>По неделям</option><option value="days">По дням</option></select>
     </div>
     <div class="chart-scroll" id="chartScroll"><canvas id="chart"></canvas></div>
     <div class="legend"><span><i></i>Количество откликов за день</span><span>Вертикальные разделители обозначают начало недели</span></div>
   </section>
 
-  <section class="panel">
-    <div class="panel-head"><div><h2>Отклики по компаниям</h2><div class="hint">Сводная таблица: количество откликов в каждую компанию, сортировка по убыванию</div></div></div>
-    <div class="company-tools"><input id="companySearch" type="search" placeholder="Найти компанию…" disabled></div>
-    <div class="table-scroll" id="companyTable"><div class="empty">Ожидание данных…</div></div>
+  <section class="top-grid">
+    <div class="panel"><div class="panel-head"><div><h2>ТОП-10 компаний</h2><div class="hint">По количеству откликов · учитывает выбранную площадку</div></div></div>
+      <div class="table-scroll" id="companyTable"><div class="empty">Ожидание данных…</div></div>
+    </div>
+    <div class="panel"><div class="panel-head"><div><h2>ТОП. Площадок</h2><div class="hint">По количеству откликов за всё время · все площадки</div></div></div>
+      <div class="table-scroll" id="platformTable"><div class="empty">Ожидание данных…</div></div>
+    </div>
   </section>
   <div class="meta" id="updated">Автообновление при открытии страницы и в 00:00 по Москве, если страница остаётся открытой.</div>
 </main>
@@ -147,82 +149,95 @@ async function getSheetRows(){
 function normalizeRecords(rows){
  const out=[];
  rows.forEach((r,i)=>{
-  // Row 1 is the header; spreadsheet columns A and B are company and date.
   if(i===0)return;
-  const companyCell=r[0],dateCell=r[1];
-  const company=String(companyCell?.f??companyCell?.v??'').trim();
-  const date=parseSheetDate(dateCell?.v,dateCell?.f);
-  if(date)out.push({company:company||'Не указана',date,key:dateKey(date)});
+  const platform=String(r[0]?.f??r[0]?.v??'').trim();
+  const company=String(r[1]?.f??r[1]?.v??'').trim();
+  const date=parseSheetDate(r[2]?.v,r[2]?.f);
+  if(date)out.push({platform:platform||'Не указана',company:company||'Не указана',date,key:dateKey(date)});
  });
  return out;
 }
+function selectedRecords(){const v=$('platformFilter').value;return v==='__all__'?records:records.filter(r=>r.platform===v);}
 function average(count,days){return days?count/days:0;}
 function fmt(n){return n.toLocaleString('ru-RU',{minimumFractionDigits:1,maximumFractionDigits:1});}
-function countInRange(from,to){return records.filter(r=>r.date>=from&&r.date<=to).length;}
+function countInRange(data,from,to){return data.filter(r=>r.date>=from&&r.date<=to).length;}
 function updateStats(){
- const todayParts=moscowParts(),today=localDateFromYMD(todayParts.year,todayParts.month,todayParts.day);
- const monthStart=localDateFromYMD(todayParts.year,todayParts.month,1);
- const prevMonthEnd=new Date(todayParts.year,todayParts.month-1,0,12);
- const prevMonthStart=new Date(prevMonthEnd.getFullYear(),prevMonthEnd.getMonth(),1,12);
- const weekday=(today.getDay()+6)%7;
- const weekStart=new Date(today);weekStart.setDate(today.getDate()-weekday);
- const prevWeekStart=new Date(weekStart);prevWeekStart.setDate(weekStart.getDate()-7);
- const prevWeekEnd=new Date(weekStart);prevWeekEnd.setDate(weekStart.getDate()-1);
- const currMonthCount=countInRange(monthStart,today),prevMonthCount=countInRange(prevMonthStart,prevMonthEnd);
- const currWeekCount=countInRange(weekStart,today),prevWeekCount=countInRange(prevWeekStart,prevWeekEnd);
- const elapsedMonth=today.getDate(),daysPrevMonth=prevMonthEnd.getDate(),elapsedWeek=weekday+1;
- $('total').textContent=records.length.toLocaleString('ru-RU');
- $('currentMonth').textContent=fmt(average(currMonthCount,elapsedMonth));
- $('previousMonth').textContent=fmt(average(prevMonthCount,daysPrevMonth));
- $('currentWeek').textContent=fmt(average(currWeekCount,elapsedWeek));
- $('previousWeek').textContent=fmt(average(prevWeekCount,7));
+ const data=selectedRecords(),p=moscowParts(),today=localDateFromYMD(p.year,p.month,p.day);
+ const monthStart=localDateFromYMD(p.year,p.month,1),prevMonthEnd=new Date(p.year,p.month-1,0,12),prevMonthStart=new Date(prevMonthEnd.getFullYear(),prevMonthEnd.getMonth(),1,12);
+ const weekday=(today.getDay()+6)%7,weekStart=new Date(today);weekStart.setDate(today.getDate()-weekday);
+ const prevWeekStart=new Date(weekStart);prevWeekStart.setDate(weekStart.getDate()-7);const prevWeekEnd=new Date(weekStart);prevWeekEnd.setDate(weekStart.getDate()-1);
+ const cm=countInRange(data,monthStart,today),pm=countInRange(data,prevMonthStart,prevMonthEnd),cw=countInRange(data,weekStart,today),pw=countInRange(data,prevWeekStart,prevWeekEnd);
+ $('total').textContent=data.length.toLocaleString('ru-RU');
+ $('currentMonth').textContent=cm.toLocaleString('ru-RU');
+ $('previousMonth').textContent=pm.toLocaleString('ru-RU');
+ $('currentWeek').textContent=cw.toLocaleString('ru-RU');
+ $('previousWeek').textContent=pw.toLocaleString('ru-RU');
 }
-function renderCompanies(){
- const term=$('companySearch').value.trim().toLocaleLowerCase('ru'),map=new Map();
- records.forEach(r=>map.set(r.company,(map.get(r.company)||0)+1));
- const arr=[...map.entries()].filter(([name])=>name.toLocaleLowerCase('ru').includes(term)).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0],'ru'));
- if(!arr.length){$('companyTable').innerHTML='<div class="empty">Нет данных по компаниям.</div>';return;}
- const table=document.createElement('table');
- table.innerHTML='<thead><tr><th>Компания</th><th>Количество откликов</th></tr></thead>';
+function buildCountTable(containerId,entries,leftHeader,rightHeader){
+ const root=$(containerId);if(!entries.length){root.innerHTML='<div class="empty">Нет данных.</div>';return;}
+ const table=document.createElement('table'),thead=document.createElement('thead'),hr=document.createElement('tr');
+ [leftHeader,rightHeader].forEach(v=>{const th=document.createElement('th');th.textContent=v;hr.appendChild(th);});thead.appendChild(hr);table.appendChild(thead);
  const body=document.createElement('tbody');
- arr.forEach(([name,n])=>{const tr=document.createElement('tr'),a=document.createElement('td'),b=document.createElement('td');a.textContent=name;b.textContent=n;tr.append(a,b);body.appendChild(tr);});
- table.appendChild(body);const foot=document.createElement('tfoot'),tr=document.createElement('tr'),a=document.createElement('td'),b=document.createElement('td');a.textContent='Итого';b.textContent=arr.reduce((s,x)=>s+x[1],0);tr.append(a,b);foot.appendChild(tr);table.appendChild(foot);$('companyTable').replaceChildren(table);
+ entries.forEach(([name,n])=>{const tr=document.createElement('tr'),a=document.createElement('td'),b=document.createElement('td');a.textContent=name;b.textContent=n;tr.append(a,b);body.appendChild(tr);});
+ table.appendChild(body);root.replaceChildren(table);
+}
+function renderTopTables(){
+ const data=selectedRecords(),companies=new Map(),platforms=new Map();
+ data.forEach(r=>companies.set(r.company,(companies.get(r.company)||0)+1));
+ records.forEach(r=>platforms.set(r.platform,(platforms.get(r.platform)||0)+1));
+ const top=m=>[...m.entries()].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0],'ru')).slice(0,10);
+ buildCountTable('companyTable',top(companies),'Компания','Отклики');
+ buildCountTable('platformTable',top(platforms),'Площадка','Отклики');
 }
 const weekdayNames=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
 function drawChart(){
- const canvas=$('chart'),wrap=$('chartScroll');if(!records.length){canvas.width=900;canvas.height=370;return;}
- const minDate=new Date(Math.min(...records.map(r=>r.date.getTime())));const maxDate=new Date(Math.max(...records.map(r=>r.date.getTime())));
- const start=new Date(minDate);start.setDate(start.getDate()-((start.getDay()+6)%7));
- const end=new Date(maxDate);end.setDate(end.getDate()+(6-((end.getDay()+6)%7)));
- const days=Math.round((end-start)/86400000)+1,step=48,left=55,right=25,top=35,bottom=78,height=370,width=Math.max(wrap.clientWidth, left+right+days*step);
+ const data=selectedRecords(),canvas=$('chart'),wrap=$('chartScroll'),mode=$('chartMode').value;
+ const chartStart=localDateFromYMD(2026,9,21);
+ const latest=data.length?new Date(Math.max(...data.map(r=>r.date.getTime()))):chartStart;
+ const end=new Date(Math.max(latest.getTime(),chartStart.getTime()));
+ const counts=new Map();data.forEach(r=>counts.set(r.key,(counts.get(r.key)||0)+1));
+ const points=[];
+ if(mode==='weeks'){
+  let cursor=new Date(chartStart);cursor.setDate(cursor.getDate()-((cursor.getDay()+6)%7));
+  while(cursor<=end){let total=0;for(let j=0;j<7;j++){const d=new Date(cursor);d.setDate(cursor.getDate()+j);total+=counts.get(dateKey(d))||0;}
+   points.push({label:`${String(cursor.getDate()).padStart(2,'0')}.${String(cursor.getMonth()+1).padStart(2,'0')}`,count:total});cursor.setDate(cursor.getDate()+7);}
+  $('chartHint').textContent='Количество откликов за неделю · начало периода 21.09.2026';
+ }else{
+  let cursor=new Date(chartStart);while(cursor<=end){points.push({label:weekdayNames[(cursor.getDay()+6)%7]+' '+String(cursor.getDate()).padStart(2,'0')+'.'+String(cursor.getMonth()+1).padStart(2,'0'),count:counts.get(dateKey(cursor))||0});cursor.setDate(cursor.getDate()+1);}
+  $('chartHint').textContent='Количество откликов по дням · начало периода 21.09.2026';
+ }
+ const step=mode==='weeks'?86:48,left=55,right=25,top=35,bottom=mode==='weeks'?55:82,height=370,width=Math.max(wrap.clientWidth,left+right+points.length*step);
  const dpr=window.devicePixelRatio||1;canvas.style.width=width+'px';canvas.style.height=height+'px';canvas.width=width*dpr;canvas.height=height*dpr;
  const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);
- const counts=new Map();records.forEach(r=>counts.set(r.key,(counts.get(r.key)||0)+1));
- const values=[];for(let i=0;i<days;i++){const d=new Date(start);d.setDate(start.getDate()+i);values.push({date:d,key:dateKey(d),count:counts.get(dateKey(d))||0});}
- const max=Math.max(1,...values.map(x=>x.count)),tick=Math.max(1,Math.ceil(max/5)),yMax=Math.ceil(max/tick)*tick,plotW=width-left-right,plotH=height-top-bottom;
+ const max=Math.max(1,...points.map(x=>x.count)),tick=Math.max(1,Math.ceil(max/5)),yMax=Math.ceil(max/tick)*tick,plotW=width-left-right,plotH=height-top-bottom;
  ctx.font='11px system-ui';ctx.textAlign='right';ctx.textBaseline='middle';ctx.fillStyle='#9ca8ba';ctx.strokeStyle='#30394a';ctx.lineWidth=1;
  for(let v=0;v<=yMax;v+=tick){const y=top+plotH-(v/yMax)*plotH;ctx.beginPath();ctx.moveTo(left,y);ctx.lineTo(width-right,y);ctx.stroke();ctx.fillText(String(v),left-10,y);}
- const xAt=i=>left+(i/(days-1||1))*plotW;
- // Week separators and week captions
- for(let i=0;i<days;i++){const d=values[i].date;if((d.getDay()+6)%7===0){const x=xAt(i);ctx.save();ctx.strokeStyle='#465267';ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(x,top);ctx.lineTo(x,top+plotH);ctx.stroke();ctx.restore();ctx.fillStyle='#9ca8ba';ctx.textAlign='left';ctx.textBaseline='top';ctx.fillText('Неделя '+String(getIsoWeek(d)),x+3,7);}}
- // Line
- ctx.beginPath();values.forEach((v,i)=>{const x=xAt(i),y=top+plotH-(v.count/yMax)*plotH;if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);});ctx.strokeStyle='#77a9ff';ctx.lineWidth=2.5;ctx.stroke();
- values.forEach((v,i)=>{const x=xAt(i),y=top+plotH-(v.count/yMax)*plotH;ctx.beginPath();ctx.arc(x,y,3.2,0,Math.PI*2);ctx.fillStyle='#77a9ff';ctx.fill();ctx.fillStyle='#c5cfdd';ctx.textAlign='center';ctx.textBaseline='top';ctx.save();ctx.translate(x,top+plotH+12);ctx.rotate(-Math.PI/4);ctx.fillText(weekdayNames[(v.date.getDay()+6)%7]+' '+String(v.date.getDate()).padStart(2,'0')+'.'+String(v.date.getMonth()+1).padStart(2,'0'),0,0);ctx.restore();});
+ const xAt=i=>left+(i/(points.length-1||1))*plotW;
+ ctx.beginPath();points.forEach((v,i)=>{const x=xAt(i),y=top+plotH-(v.count/yMax)*plotH;if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);});ctx.strokeStyle='#77a9ff';ctx.lineWidth=2.5;ctx.stroke();
+ points.forEach((v,i)=>{const x=xAt(i),y=top+plotH-(v.count/yMax)*plotH;ctx.beginPath();ctx.arc(x,y,3.2,0,Math.PI*2);ctx.fillStyle='#77a9ff';ctx.fill();ctx.fillStyle='#c5cfdd';ctx.textAlign='center';ctx.textBaseline='top';if(mode==='days'){ctx.save();ctx.translate(x,top+plotH+12);ctx.rotate(-Math.PI/4);ctx.fillText(v.label,0,0);ctx.restore();}else ctx.fillText(v.label,x,top+plotH+14);});
 }
 function getIsoWeek(d){const x=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));x.setUTCDate(x.getUTCDate()+4-(x.getUTCDay()||7));const y=new Date(Date.UTC(x.getUTCFullYear(),0,1));return Math.ceil((((x-y)/86400000)+1)/7);}
 async function load(){
  if(busy)return;busy=true;$('refresh').disabled=true;$('status').classList.remove('error');$('status').textContent='Загружаю опубликованную таблицу…';
  try{
   const result=await getSheetRows();records=normalizeRecords(result.rows);
-  if(!records.length)throw new Error('Не найдено ни одной строки с датой в колонке B. Проверьте, что опубликован нужный лист.');
-  updateStats();renderCompanies();drawChart();$('companySearch').disabled=false;
+  if(!records.length)throw new Error('Не найдено строк с датой в колонке C. Ожидается структура: A — площадка, B — компания, C — дата.');
+  const platforms=[...new Set(records.map(r=>r.platform))].sort((a,b)=>a.localeCompare(b,'ru'));
+  const select=$('platformFilter'),previous=select.value;
+  select.innerHTML='<option value="__all__">Все площадки</option>'+platforms.map(v=>`<option value="${escapeAttr(v)}">${escapeHtml(v)}</option>`).join('');
+  select.value=platforms.includes(previous)?previous:'__all__';select.disabled=false;
+  updateStats();renderTopTables();drawChart();
   const t=new Intl.DateTimeFormat('ru-RU',{timeZone:TZ,dateStyle:'short',timeStyle:'medium'}).format(new Date());
-  $('status').textContent=`Данные загружены: ${records.length} откликов · ${result.source} · ${t} (Москва).`;
-  $('updated').textContent=`Последнее обновление: ${t}. Автоматическая загрузка при открытии и в 00:00 по Москве, пока страница открыта. Средние значения включают календарные дни без откликов.`;
- }catch(e){$('status').classList.add('error');$('status').textContent='Ошибка загрузки: '+(e.message||e);if(!records.length)$('companyTable').innerHTML='<div class="empty">Нет данных для построения сводной таблицы.</div>';}
+  $('status').textContent=`Данные загружены: ${t}`;
+  $('updated').textContent='Автоматическая загрузка при открытии и в 00:00 по Москве, если страница остаётся открытой. Средние значения включают календарные дни без откликов.';
+ }catch(e){$('status').classList.add('error');$('status').textContent='Ошибка загрузки: '+(e.message||e);}
  finally{busy=false;$('refresh').disabled=false;}
 }
-$('refresh').addEventListener('click',load);$('companySearch').addEventListener('input',renderCompanies);
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function escapeAttr(s){return escapeHtml(s);}
+$('refresh').addEventListener('click',load);
+$('platformFilter').addEventListener('change',()=>{updateStats();renderTopTables();drawChart();});
+$('chartMode').addEventListener('change',drawChart);
 window.addEventListener('resize',()=>{if(records.length)drawChart();});
 setInterval(()=>{const d=moscowKey();if(d!==lastDate){lastDate=d;load();}},15000);
 load();
