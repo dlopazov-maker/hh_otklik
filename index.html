@@ -14,7 +14,7 @@ button{background:var(--accent);color:#101827;border:0;border-radius:9px;padding
 .cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:18px}
 .card,.panel{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:18px;min-width:0}
 .card-title{color:var(--muted);font-size:14px;font-weight:650}.big{font-size:34px;font-weight:750;line-height:1.2;margin:8px 0 15px;font-variant-numeric:tabular-nums}
-.substats{display:grid;grid-template-columns:1fr 1fr;gap:9px}.substat{background:var(--panel2);border-radius:9px;padding:10px}.substat span{display:block;color:var(--muted);font-size:12px}.substat strong{font-size:20px;font-variant-numeric:tabular-nums}
+.substats{display:grid;grid-template-columns:1fr 1fr;gap:9px}.substat{background:var(--panel2);border-radius:9px;padding:10px}.substat span{display:block;color:var(--muted);font-size:12px}.substat strong{font-size:20px;font-variant-numeric:tabular-nums}.comparison{margin-top:12px;padding:10px 11px;border-radius:9px;background:var(--panel2);font-size:13px;color:var(--muted)}.comparison strong{font-size:16px;font-variant-numeric:tabular-nums;margin-left:5px}.comparison.positive strong{color:var(--green)}.comparison.negative strong{color:var(--danger)}.comparison.neutral strong{color:var(--text)}
 .panel{margin-bottom:18px}.top-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.top-grid .panel{min-width:0}.panel-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px}.panel h2{font-size:18px;margin:0}.hint{color:var(--muted);font-size:12px;margin-top:4px}
 .chart-scroll{overflow-x:auto;overflow-y:hidden;border-radius:8px}canvas{display:block;height:370px}
 .legend{display:flex;gap:16px;flex-wrap:wrap;color:var(--muted);font-size:12px;margin-top:8px}.legend i{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--accent);margin-right:6px}
@@ -44,6 +44,7 @@ button{background:var(--accent);color:#101827;border:0;border-radius:9px;padding
         <div class="substat"><span>Текущий месяц · всего</span><strong id="currentMonth">—</strong></div>
         <div class="substat"><span>Предыдущий месяц · всего</span><strong id="previousMonth">—</strong></div>
       </div>
+      <div class="comparison neutral" id="monthComparison">Изменение к предыдущему месяцу: <strong>—</strong></div>
     </article>
     <article class="card">
       <div class="card-title">Отклики в неделю:</div>
@@ -51,6 +52,7 @@ button{background:var(--accent);color:#101827;border:0;border-radius:9px;padding
         <div class="substat"><span>Текущая неделя · всего</span><strong id="currentWeek">—</strong></div>
         <div class="substat"><span>Предыдущая неделя · всего</span><strong id="previousWeek">—</strong></div>
       </div>
+      <div class="comparison neutral" id="weekComparison">Изменение к предыдущей неделе: <strong>—</strong></div>
     </article>
   </section>
 
@@ -172,6 +174,32 @@ function updateStats(){
  $('previousMonth').textContent=pm.toLocaleString('ru-RU');
  $('currentWeek').textContent=cw.toLocaleString('ru-RU');
  $('previousWeek').textContent=pw.toLocaleString('ru-RU');
+
+ // Compare current actual totals with the previous period's daily pace,
+ // projected over the number of elapsed days in the current period.
+ const daysInCurrentMonth=new Date(p.year,p.month,0).getDate();
+ const elapsedMonthDays=today.getDate();
+ const monthBaseline=(pm/daysInCurrentMonth)*elapsedMonthDays;
+ const elapsedWeekDays=weekday+1;
+ const weekBaseline=(pw/7)*elapsedWeekDays;
+ renderComparison('monthComparison',cm,monthBaseline,'Изменение к предыдущему месяцу');
+ renderComparison('weekComparison',cw,weekBaseline,'Изменение к предыдущей неделе');
+}
+function renderComparison(id,actual,baseline,label){
+ const el=$(id),strong=el.querySelector('strong');
+ el.classList.remove('positive','negative','neutral');
+ if(baseline===0){
+  el.classList.add('neutral');
+  strong.textContent=actual===0?'0%':'Нет базы для сравнения';
+  el.firstChild.textContent=label+': ';
+  return;
+ }
+ const change=((actual-baseline)/baseline)*100;
+ const rounded=Math.round(Math.abs(change)*10)/10;
+ const sign=change>0?'+':change<0?'−':'';
+ el.classList.add(change>0?'positive':change<0?'negative':'neutral');
+ strong.textContent=`${sign}${rounded.toLocaleString('ru-RU',{minimumFractionDigits:1,maximumFractionDigits:1})}%`;
+ el.firstChild.textContent=label+': ';
 }
 function buildCountTable(containerId,entries,leftHeader,rightHeader){
  const root=$(containerId);if(!entries.length){root.innerHTML='<div class="empty">Нет данных.</div>';return;}
