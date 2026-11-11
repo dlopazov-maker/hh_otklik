@@ -25,7 +25,9 @@ button{background:var(--accent);color:#101827;border:0;border-radius:9px;padding
 .add-view[hidden]{display:none!important}
 .form-toolbar{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:20px}
 .form-toolbar .subtitle{margin-bottom:0}
-.form-panel{max-width:900px}
+.add-view{width:calc(100vw - 52px);max-width:1700px;position:relative;left:50%;transform:translateX(-50%)}
+.form-panel{max-width:none;width:100%}
+.today-check input{width:17px!important;height:17px;padding:0;border:0;flex:0 0 17px}
 .form-intro{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
 .form-intro h2{font-size:19px;margin:0}
 .record-groups{display:grid;gap:14px}
@@ -51,7 +53,36 @@ button{background:var(--accent);color:#101827;border:0;border-radius:9px;padding
 .form-status.visible{display:block}
 .form-status.error{border:1px solid #784747;color:#ffd1d1}
 .form-status.success{border:1px solid #426b52;color:#b8f0c9}
-@media(max-width:650px){.form-toolbar{align-items:flex-start;flex-direction:column}.form-grid{grid-template-columns:1fr}.form-actions button{width:100%}.record-group{padding:12px}}
+
+.search-row{display:flex;gap:10px;margin:10px 0 14px}
+.search-row input{width:100%;background:#111722;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:11px 13px;font:inherit}
+.today-check{display:flex!important;flex-direction:row!important;align-items:center;gap:8px;margin-top:2px;color:var(--muted)!important;font-weight:500!important}
+.today-check input,.status-check{width:17px;height:17px;accent-color:var(--accent);cursor:pointer}
+.response-register{margin-top:18px}
+.register-table{min-width:760px}
+.register-table td:last-child,.register-table th:last-child{text-align:left}
+.register-table .check-cell{text-align:center!important;width:105px}
+.register-table .check-cell input{width:18px;height:18px;accent-color:var(--accent);cursor:pointer}
+.register-table .saving{opacity:.45;pointer-events:none}
+.pie-layout{display:grid;grid-template-columns:minmax(180px,1fr) minmax(150px,1fr);gap:18px;align-items:center;min-height:240px}
+.pie3d{width:min(100%,270px);aspect-ratio:1.25;position:relative;margin:0 auto;display:flex;align-items:center;justify-content:center}
+.pie3d:before{content:"";position:absolute;inset:12% 5% 0;border-radius:50%;background:rgba(0,0,0,.38);filter:blur(5px);transform:translateY(18px)}
+.pie3d-disc{width:100%;height:100%;border-radius:50%;transform:perspective(600px) rotateX(55deg);box-shadow:0 17px 0 rgba(0,0,0,.36),0 22px 24px rgba(0,0,0,.25);position:relative}
+.pie-center{position:absolute;left:50%;top:48%;transform:translate(-50%,-50%);text-align:center;z-index:2;text-shadow:0 1px 4px #000}
+.pie-center strong{display:block;font-size:25px}
+.pie-center span{font-size:11px;color:#e0e7f2}
+.pie-legend{display:grid;gap:9px}
+.pie-legend-item{display:grid;grid-template-columns:10px 1fr auto;gap:8px;align-items:center;font-size:13px}
+.pie-swatch{width:10px;height:10px;border-radius:3px}
+.pie-legend-item span:nth-child(2){color:var(--muted);overflow-wrap:anywhere}
+.pie-legend-item strong{font-variant-numeric:tabular-nums}
+.funnel-wrap{overflow-x:auto}
+.funnel-svg{display:block;width:100%;min-width:520px;max-height:380px}
+.funnel-caption{display:flex;justify-content:center;gap:22px;flex-wrap:wrap;color:var(--muted);font-size:12px;margin-top:8px}
+.funnel-caption strong{color:var(--text)}
+@media(max-width:650px){.pie-layout{grid-template-columns:1fr}.pie-legend{grid-template-columns:1fr 1fr}.search-row{display:block}}
+
+@media(max-width:650px){.add-view{width:calc(100vw - 30px)}.form-toolbar{align-items:flex-start;flex-direction:column}.form-grid{grid-template-columns:1fr}.form-actions button{width:100%}.record-group{padding:12px}}
 
 @media(max-width:800px){body{padding:15px}.cards{grid-template-columns:1fr}.top-grid{grid-template-columns:1fr}.big{font-size:30px}.panel{padding:14px}.panel-head{display:block}}
 </style>
@@ -95,16 +126,20 @@ button{background:var(--accent);color:#101827;border:0;border-radius:9px;padding
       <select id="chartMode" aria-label="Группировка диаграммы"><option value="weeks" selected>По неделям</option><option value="days">По дням</option></select>
     </div>
     <div class="chart-scroll" id="chartScroll"><canvas id="chart"></canvas></div>
-    <div class="legend"><span><i></i>Количество откликов за день</span><span>Вертикальные разделители обозначают начало недели</span></div>
+    <div class="legend"><span><i></i>Количество откликов</span><span>Вертикальные разделители обозначают начало недели</span></div>
   </section>
 
   <section class="top-grid">
     <div class="panel"><div class="panel-head"><div><h2>ТОП-10 компаний</h2><div class="hint">По количеству откликов · учитывает выбранную площадку</div></div></div>
       <div class="table-scroll" id="companyTable"><div class="empty">Ожидание данных…</div></div>
     </div>
-    <div class="panel"><div class="panel-head"><div><h2>ТОП. Площадок</h2><div class="hint">По количеству откликов за всё время · все площадки</div></div></div>
-      <div class="table-scroll" id="platformTable"><div class="empty">Ожидание данных…</div></div>
+    <div class="panel"><div class="panel-head"><div><h2>Доли площадок</h2><div class="hint">Доля каждой площадки от общего количества откликов · 100% — все отклики</div></div></div>
+      <div id="platformChart" class="pie-layout"><div class="empty">Ожидание данных…</div></div>
     </div>
+  </section>
+  <section class="panel">
+    <div class="panel-head"><div><h2>Воронка найма</h2><div class="hint">Отправленные отклики → приглашения → офферы</div></div></div>
+    <div id="hiringFunnel" class="funnel-wrap"><div class="empty">Ожидание данных…</div></div>
   </section>
   <div class="meta" id="updated">Автообновление при открытии страницы и в 00:00 по Москве, если страница остаётся открытой.</div>
 </section>
@@ -128,6 +163,11 @@ button{background:var(--accent);color:#101827;border:0;border-radius:9px;padding
     </div>
     <div id="formStatus" class="form-status" role="status" aria-live="polite"></div>
   </div>
+  <section class="panel response-register">
+    <div class="panel-head"><div><h2>Все отклики</h2><div class="hint">Отметки о приглашениях и офферах сохраняются в Google Sheets.</div></div></div>
+    <div class="search-row"><input id="recordSearch" type="search" placeholder="Поиск по площадке, компании или дате отклика…"></div>
+    <div id="recordsTable" class="table-scroll"><div class="empty">Загружаю отклики…</div></div>
+  </section>
 </section>
 </main>
 <script>
@@ -204,6 +244,7 @@ async function getSheetRows(){
  try{return {rows:await jsonpRows(),source:'Google Visualization'};}
  catch(e){const rows=await csvRows();return {rows,source:'CSV (резервный способ)'};}
 }
+function toBool(v){return v===true||String(v??'').trim().toLowerCase()==='true'||String(v??'').trim()==='1'||String(v??'').trim().toLowerCase()==='да';}
 function normalizeRecords(rows){
  const out=[];
  rows.forEach((r,i)=>{
@@ -212,7 +253,7 @@ function normalizeRecords(rows){
   const company=String(r[1]?.f??r[1]?.v??'').trim();
   const date=parseSheetDate(r[2]?.v,r[2]?.f);
   const job=String(r[3]?.f??r[3]?.v??'').trim();
-   if(date)out.push({platform:platform||'Не указана',company:company||'Не указана',date,key:dateKey(date),job});
+   if(date)out.push({platform:platform||'Не указана',company:company||'Не указана',date,key:dateKey(date),job,invited:toBool(r[4]?.v??r[4]?.f),offer:toBool(r[5]?.v??r[5]?.f),sheetRow:i+2});
  });
  return out;
 }
@@ -266,13 +307,46 @@ function buildCountTable(containerId,entries,leftHeader,rightHeader){
  entries.forEach(([name,n])=>{const tr=document.createElement('tr'),a=document.createElement('td'),b=document.createElement('td');a.textContent=name;b.textContent=n;tr.append(a,b);body.appendChild(tr);});
  table.appendChild(body);root.replaceChildren(table);
 }
+
+const pieColors=['#77a9ff','#8bd5a7','#f4c56a','#d99cff','#ff8585','#64c7c9','#f39b68','#9aa8ff','#c0d17b','#d78cae'];
+function renderPlatformPie(map){
+  const root=$('platformChart'),entries=[...map.entries()].sort((a,b)=>b[1]-a[1]);
+  const total=entries.reduce((s,x)=>s+x[1],0);
+  if(!total){root.innerHTML='<div class="empty">Нет данных для диаграммы.</div>';return;}
+  let start=0;const stops=[];
+  entries.forEach(([name,count],i)=>{const end=start+count/total*100;stops.push(`${pieColors[i%pieColors.length]} ${start}% ${end}%`);start=end;});
+  root.innerHTML=`<div class="pie3d"><div class="pie3d-disc" style="background:conic-gradient(${stops.join(',')})"></div><div class="pie-center"><strong>${total.toLocaleString('ru-RU')}</strong><span>всего откликов</span></div></div><div class="pie-legend">${entries.map(([name,count],i)=>`<div class="pie-legend-item"><i class="pie-swatch" style="background:${pieColors[i%pieColors.length]}"></i><span>${escapeHtml(name)}</span><strong>${(count/total*100).toLocaleString('ru-RU',{maximumFractionDigits:1})}%</strong></div>`).join('')}</div>`;
+}
+function renderHiringFunnel(){
+  const root=$('hiringFunnel'),total=records.length,invited=records.filter(r=>r.invited).length,offers=records.filter(r=>r.offer).length;
+  const maxW=620,minW=190,center=360,levels=[
+    {label:'Отклики',count:total,color:'#77a9ff'},
+    {label:'Приглашения',count:invited,color:'#8bd5a7'},
+    {label:'Офферы',count:offers,color:'#d99cff'}
+  ];
+  if(!total){root.innerHTML='<div class="empty">Нет данных для воронки.</div>';return;}
+  let svg=`<svg class="funnel-svg" viewBox="0 0 720 350" role="img" aria-label="Воронка откликов, приглашений и офферов">`;
+  levels.forEach((v,i)=>{
+    const w=Math.max(minW,maxW*(v.count/total)),next=i<2?Math.max(minW,maxW*(levels[i+1].count/total)):Math.max(minW,w*.82);
+    const y=18+i*105,h=82,x1=center-w/2,x2=center+w/2,nx1=center-next/2,nx2=center+next/2;
+    const points=`${x1},${y} ${x2},${y} ${nx2},${y+h} ${nx1},${y+h}`;
+    svg+=`<polygon points="${points}" fill="${v.color}" opacity=".88" stroke="rgba(255,255,255,.28)" stroke-width="1"/>`;
+    svg+=`<polygon points="${x2},${y} ${x2+18},${y+9} ${nx2+18},${y+h+9} ${nx2},${y+h}" fill="${v.color}" opacity=".45"/>`;
+    svg+=`<text x="${center}" y="${y+31}" text-anchor="middle" fill="#101827" font-size="16" font-weight="700">${v.label}</text>`;
+    svg+=`<text x="${center}" y="${y+58}" text-anchor="middle" fill="#101827" font-size="20" font-weight="800">${v.count.toLocaleString('ru-RU')}</text>`;
+  });
+  svg+='</svg>';
+  const inviteRate=(invited/total*100),offerRate=(offers/total*100),offerFromInvite=invited?offers/invited*100:0;
+  root.innerHTML=svg+`<div class="funnel-caption"><span>Отклик → приглашение: <strong>${inviteRate.toLocaleString('ru-RU',{maximumFractionDigits:1})}%</strong></span><span>Отклик → оффер: <strong>${offerRate.toLocaleString('ru-RU',{maximumFractionDigits:1})}%</strong></span><span>Приглашение → оффер: <strong>${offerFromInvite.toLocaleString('ru-RU',{maximumFractionDigits:1})}%</strong></span></div>`;
+}
+
 function renderTopTables(){
  const data=selectedRecords(),companies=new Map(),platforms=new Map();
  data.forEach(r=>companies.set(r.company,(companies.get(r.company)||0)+1));
  records.forEach(r=>platforms.set(r.platform,(platforms.get(r.platform)||0)+1));
  const top=m=>[...m.entries()].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0],'ru')).slice(0,10);
  buildCountTable('companyTable',top(companies),'Компания','Отклики');
- buildCountTable('platformTable',top(platforms),'Площадка','Отклики');
+ renderPlatformPie(platforms);renderHiringFunnel();
 }
 const weekdayNames=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
 function drawChart(){
@@ -299,7 +373,7 @@ function drawChart(){
  for(let v=0;v<=yMax;v+=tick){const y=top+plotH-(v/yMax)*plotH;ctx.beginPath();ctx.moveTo(left,y);ctx.lineTo(width-right,y);ctx.stroke();ctx.fillText(String(v),left-10,y);}
  const xAt=i=>left+(i/(points.length-1||1))*plotW;
  ctx.beginPath();points.forEach((v,i)=>{const x=xAt(i),y=top+plotH-(v.count/yMax)*plotH;if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);});ctx.strokeStyle='#77a9ff';ctx.lineWidth=2.5;ctx.stroke();
- points.forEach((v,i)=>{const x=xAt(i),y=top+plotH-(v.count/yMax)*plotH;ctx.beginPath();ctx.arc(x,y,3.2,0,Math.PI*2);ctx.fillStyle='#77a9ff';ctx.fill();ctx.fillStyle='#c5cfdd';ctx.textAlign='center';ctx.textBaseline='top';if(mode==='days'){ctx.save();ctx.translate(x,top+plotH+12);ctx.rotate(-Math.PI/4);ctx.fillText(v.label,0,0);ctx.restore();}else ctx.fillText(v.label,x,top+plotH+14);});
+ points.forEach((v,i)=>{const x=xAt(i),y=top+plotH-(v.count/yMax)*plotH;ctx.beginPath();ctx.arc(x,y,3.2,0,Math.PI*2);ctx.fillStyle='#77a9ff';ctx.fill();ctx.fillStyle='#edf1f7';ctx.font='10px system-ui';ctx.textAlign='center';ctx.textBaseline='bottom';ctx.fillText(String(v.count),x,y-9);ctx.fillStyle='#c5cfdd';ctx.font='11px system-ui';ctx.textAlign='center';ctx.textBaseline='top';if(mode==='days'){ctx.save();ctx.translate(x,top+plotH+12);ctx.rotate(-Math.PI/4);ctx.fillText(v.label,0,0);ctx.restore();}else ctx.fillText(v.label,x,top+plotH+14);});
 }
 function getIsoWeek(d){const x=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));x.setUTCDate(x.getUTCDate()+4-(x.getUTCDay()||7));const y=new Date(Date.UTC(x.getUTCFullYear(),0,1));return Math.ceil((((x-y)/86400000)+1)/7);}
 async function load(){
@@ -353,7 +427,7 @@ function addRecordGroup(){
         </div>
       </div>
       <div class="field"><label for="company-${n}">Компания *</label><input id="company-${n}" type="text" maxlength="200" placeholder="Название компании" required></div>
-      <div class="field"><label for="date-${n}">Дата отклика *</label><input id="date-${n}" type="date" value="${today}" required></div>
+      <div class="field"><label for="date-${n}">Дата отклика *</label><input id="date-${n}" type="date" value="${today}" required><label class="today-check"><input id="today-${n}" type="checkbox" checked> Сегодня</label></div>
       <div class="field">
         <label class="job-label" for="job-${n}">Название должности
           <span class="info-wrap"><span class="info-icon" tabindex="0" aria-label="Подсказка">i</span><span class="tooltip">Название должности поможет построить качественную аналитику.</span></span>
@@ -367,6 +441,9 @@ function addRecordGroup(){
     box.classList.toggle('visible',e.target.value===NEW_PLATFORM_VALUE);
     if(e.target.value===NEW_PLATFORM_VALUE)$(`new-platform-${n}`).focus();
   });
+  const todayBox=$(`today-${n}`),dateInput=$(`date-${n}`);
+  todayBox.addEventListener('change',()=>{if(todayBox.checked){dateInput.value=moscowKey();}else{dateInput.value='';}});
+  dateInput.addEventListener('change',()=>{todayBox.checked=dateInput.value===moscowKey();});
   const remove=wrap.querySelector('.remove-record');
   if(remove)remove.addEventListener('click',()=>{wrap.remove();renumberGroups();});
   updateAddButton();
@@ -397,6 +474,51 @@ function readFormRecords(){
     return {platform,company,date,job};
   });
 }
+
+function formatDateRu(d){return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`;}
+function renderRecordsTable(){
+  const root=$('recordsTable');if(!root)return;
+  const query=($('recordSearch')?.value||'').trim().toLowerCase();
+  const rows=records.filter(r=>[r.platform,r.company,formatDateRu(r.date),r.key,r.job||''].join(' ').toLowerCase().includes(query))
+    .sort((a,b)=>b.date-a.date||b.sheetRow-a.sheetRow);
+  if(!rows.length){root.innerHTML='<div class="empty">Совпадений не найдено.</div>';return;}
+  root.innerHTML=`<table class="register-table"><thead><tr><th>Площадка</th><th>Компания</th><th>Дата отклика</th><th>Название должности</th><th class="check-cell">Пригласили?</th><th class="check-cell">Оффер?</th></tr></thead><tbody>${rows.map(r=>`<tr data-row="${r.sheetRow}"><td>${escapeHtml(r.platform)}</td><td>${escapeHtml(r.company)}</td><td>${formatDateRu(r.date)}</td><td>${escapeHtml(r.job||'—')}</td><td class="check-cell"><input class="status-check" type="checkbox" data-status="invited" ${r.invited?'checked':''} aria-label="Пригласили: ${escapeHtml(r.company)}"></td><td class="check-cell"><input class="status-check" type="checkbox" data-status="offer" ${r.offer?'checked':''} aria-label="Оффер: ${escapeHtml(r.company)}"></td></tr>`).join('')}</tbody></table>`;
+  root.querySelectorAll('.status-check').forEach(box=>box.addEventListener('change',async()=>{
+    const tr=box.closest('tr'),row=Number(tr.dataset.row),record=records.find(x=>x.sheetRow===row);
+    if(!record)return;
+    const previous=box.checked;box.disabled=true;tr.classList.add('saving');
+    const invited=box.dataset.status==='invited'?previous:record.invited;
+    const offer=box.dataset.status==='offer'?previous:record.offer;
+    try{
+      await postAppsScript({action:'updateStatus',row,invited,offer});
+      const verified=await verifyStatus(row,invited,offer);
+      if(!verified)throw new Error('Изменение не подтвердилось в таблице. Проверь доступ и обнови данные.');
+      record.invited=invited;record.offer=offer;
+      renderHiringFunnel();
+    }catch(e){box.checked=!previous;alert(e.message||String(e));}
+    finally{box.disabled=false;tr.classList.remove('saving');}
+  }));
+}
+function postAppsScript(payload){
+  return new Promise((resolve,reject)=>{
+    const frame=document.createElement('iframe'),target='gsheet-post-'+Date.now()+'-'+Math.random().toString(36).slice(2);
+    frame.name=target;frame.style.display='none';document.body.appendChild(frame);
+    const form=document.createElement('form');form.method='POST';form.action=APPS_SCRIPT_URL;form.target=target;form.style.display='none';
+    const input=document.createElement('input');input.type='hidden';input.name='payload';input.value=JSON.stringify(payload);form.appendChild(input);document.body.appendChild(form);
+    let finished=false;const timer=setTimeout(()=>{if(!finished){finished=true;form.remove();frame.remove();reject(new Error('Время ожидания ответа Apps Script истекло.'));}},20000);
+    frame.addEventListener('load',()=>{if(!finished){finished=true;clearTimeout(timer);setTimeout(()=>{form.remove();frame.remove();resolve();},250);}});
+    form.submit();
+  });
+}
+async function verifyStatus(row,invited,offer){
+  for(let i=0;i<5;i++){
+    await new Promise(r=>setTimeout(r,1400));
+    try{const result=await getSheetRows(),fresh=normalizeRecords(result.rows),found=fresh.find(x=>x.sheetRow===row);
+      if(found&&found.invited===invited&&found.offer===offer){records=fresh;return true;}}
+    catch(e){}
+  }return false;
+}
+
 function formMessage(message,type=''){
   const el=$('formStatus');el.textContent=message;el.className='form-status visible'+(type?' '+type:'');
 }
@@ -423,43 +545,25 @@ async function submitRecords(){
   try{payload=readFormRecords();}catch(e){formMessage(e.message,'error');return;}
   btn.disabled=true;formMessage('Отправляю отклики в Google Sheets…');
   try{
-    // Apps Script accepts a URL-encoded "payload" parameter via POST.
-    const frame=document.createElement('iframe');
-    const target='gsheet-submit-'+Date.now();
-    frame.name=target;frame.style.display='none';frame.setAttribute('aria-hidden','true');
-    const initialFrameLoad=new Promise(resolve=>frame.addEventListener('load',resolve,{once:true}));
-    document.body.appendChild(frame);
-    await initialFrameLoad;
-    const form=document.createElement('form');
-    form.method='POST';form.action=APPS_SCRIPT_URL;form.target=target;form.style.display='none';
-    const input=document.createElement('input');input.type='hidden';input.name='payload';input.value=JSON.stringify({records:payload});
-    form.appendChild(input);document.body.appendChild(form);
-    let settled=false;
-    const result=new Promise((resolve,reject)=>{
-      const timer=setTimeout(()=>{if(!settled){settled=true;reject(new Error('Не удалось получить ответ от Google Apps Script. Проверь доступ к веб-приложению и попробуй ещё раз.'));}},25000);
-      frame.addEventListener('load',()=>{if(!settled){settled=true;clearTimeout(timer);resolve();}},{once:true});
-    });
-    form.submit();
-    await result;
-    form.remove();frame.remove();
+    await postAppsScript({action:'append',records:payload});
     formMessage('Запрос отправлен. Проверяю, появились ли записи в таблице…');
     const verified=await verifySavedRecords(payload);
-    if(!verified)throw new Error('Google Apps Script получил запрос, но новые строки пока не появились в опубликованной таблице. Проверь развёртывание и доступ к таблице; не отправляй повторно, пока не убедишься, что записи не добавились.');
-    updateStats();renderTopTables();drawChart();
+    if(!verified)throw new Error('Новые строки пока не появились в опубликованной таблице. Проверь настройки развертывания Apps Script. Не отправляй записи повторно до проверки таблицы.');
+    updateStats();renderTopTables();drawChart();renderRecordsTable();
     const platforms=[...new Set(records.map(r=>r.platform))].sort((a,b)=>a.localeCompare(b,'ru'));
     const select=$('platformFilter'),prev=select.value;
     select.innerHTML='<option value="__all__">Все площадки</option>'+platforms.map(v=>`<option value="${escapeAttr(v)}">${escapeHtml(v)}</option>`).join('');
     select.value=platforms.includes(prev)?prev:'__all__';
     updateStats();renderTopTables();drawChart();
     $('status').textContent='Данные обновлены после добавления откликов.';
-    $('updated').textContent='Автоматическая загрузка при открытии и в 00:00 по Москве, если страница остаётся открытой.';
     formMessage(`Успешно добавлено откликов: ${payload.length}. Аналитика обновлена.`,'success');
-    $('recordGroups').replaceChildren();addRecordGroup();showView('analytics');
+    $('recordGroups').replaceChildren();recordGroupCount=0;addRecordGroup();showView('analytics');
   }catch(e){formMessage(e.message||String(e),'error');}
   finally{btn.disabled=false;}
 }
 $('openAdd').addEventListener('click',()=>{if(records.length){$('recordGroups').replaceChildren();addRecordGroup();showView('add');}else{formMessage('Сначала дождись загрузки данных аналитики.');showView('add');if(!$('recordGroups').children.length)addRecordGroup();}});
 $('backToAnalytics').addEventListener('click',()=>showView('analytics'));
+$('recordSearch').addEventListener('input',renderRecordsTable);
 $('addRecord').addEventListener('click',addRecordGroup);
 $('submitRecords').addEventListener('click',submitRecords);
 
