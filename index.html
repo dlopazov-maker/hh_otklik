@@ -21,14 +21,47 @@ button{background:var(--accent);color:#101827;border:0;border-radius:9px;padding
 .company-tools{display:flex;gap:10px;align-items:center;margin:12px 0}.company-tools input{flex:1;min-width:180px;background:#111722;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font:inherit}
 .table-scroll{overflow:auto;max-height:520px;border:1px solid var(--line);border-radius:9px}table{width:100%;border-collapse:collapse;min-width:380px}th,td{text-align:left;padding:10px 13px;border-bottom:1px solid var(--line)}th{position:sticky;top:0;background:#222b3a;color:#dce5f2;z-index:1}td:last-child,th:last-child{text-align:right;font-variant-numeric:tabular-nums}tbody tr:hover{background:var(--panel2)}tfoot{font-weight:700;background:#222b3a}tfoot td{border:0}.empty{padding:24px;text-align:center;color:var(--muted)}
 .meta{color:var(--muted);font-size:12px;margin:12px 2px 0}
+
+.add-view[hidden]{display:none!important}
+.form-toolbar{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:20px}
+.form-toolbar .subtitle{margin-bottom:0}
+.form-panel{max-width:900px}
+.form-intro{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.form-intro h2{font-size:19px;margin:0}
+.record-groups{display:grid;gap:14px}
+.record-group{background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:16px}
+.record-group-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:13px}
+.record-group-head strong{font-size:15px}
+.remove-record{background:transparent;color:var(--danger);border:1px solid #784747;padding:6px 10px;font-size:13px}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field label{font-size:13px;color:var(--muted);font-weight:600}
+.field input,.field select{width:100%;min-width:0;background:#111722;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font:inherit}
+.field input:focus,.field select:focus{outline:2px solid #77a9ff55;border-color:var(--accent)}
+.job-label{display:flex;align-items:center;gap:7px}
+.info-wrap{position:relative;display:inline-flex;align-items:center}
+.info-icon{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;border:1px solid var(--muted);border-radius:50%;font-size:11px;color:var(--muted);cursor:help}
+.tooltip{position:absolute;left:50%;bottom:calc(100% + 9px);transform:translateX(-50%);width:245px;padding:9px 11px;background:#30394a;border:1px solid #536078;border-radius:8px;color:var(--text);font-size:12px;font-weight:400;line-height:1.4;opacity:0;visibility:hidden;pointer-events:none;z-index:5}
+.info-wrap:hover .tooltip,.info-wrap:focus-within .tooltip{opacity:1;visibility:visible}
+.new-platform-wrap{display:none;margin-top:7px}
+.new-platform-wrap.visible{display:block}
+.form-actions{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:18px}
+.secondary-button{background:var(--panel2);color:var(--text);border:1px solid var(--line)}
+.form-status{display:none;margin-top:15px;padding:11px 13px;border-radius:9px;background:var(--panel2);color:var(--muted);overflow-wrap:anywhere}
+.form-status.visible{display:block}
+.form-status.error{border:1px solid #784747;color:#ffd1d1}
+.form-status.success{border:1px solid #426b52;color:#b8f0c9}
+@media(max-width:650px){.form-toolbar{align-items:flex-start;flex-direction:column}.form-grid{grid-template-columns:1fr}.form-actions button{width:100%}.record-group{padding:12px}}
+
 @media(max-width:800px){body{padding:15px}.cards{grid-template-columns:1fr}.top-grid{grid-template-columns:1fr}.big{font-size:30px}.panel{padding:14px}.panel-head{display:block}}
 </style>
 </head>
 <body>
 <main>
+<section id="analyticsView">
   <h1>Аналитика откликов</h1>
   <div class="subtitle">Статистика по датам откликов и компаниям из Google Sheets</div>
-  <div class="toolbar"><button id="refresh" type="button">Обновить данные</button></div>
+  <div class="toolbar"><button id="openAdd" type="button" class="secondary-button">＋ Добавить отклик</button><button id="refresh" type="button">Обновить данные</button></div>
   <div id="status" class="status">Загружаю данные из Google Sheets…</div>
 
   <section class="cards">
@@ -74,9 +107,32 @@ button{background:var(--accent);color:#101827;border:0;border-radius:9px;padding
     </div>
   </section>
   <div class="meta" id="updated">Автообновление при открытии страницы и в 00:00 по Москве, если страница остаётся открытой.</div>
+</section>
+
+<section id="addView" class="add-view" hidden>
+  <div class="form-toolbar">
+    <div>
+      <h1>Добавление откликов</h1>
+      <div class="subtitle">Добавь один или несколько откликов в Google Sheets.</div>
+    </div>
+    <button id="backToAnalytics" type="button" class="secondary-button">← К аналитике</button>
+  </div>
+  <div class="panel form-panel">
+    <div class="form-intro">
+      <div><h2>Новые отклики</h2><div class="hint">Можно добавить до 5 откликов за одну отправку.</div></div>
+    </div>
+    <div id="recordGroups" class="record-groups"></div>
+    <div class="form-actions">
+      <button id="addRecord" type="button" class="secondary-button">＋ Добавить ещё отклик</button>
+      <button id="submitRecords" type="button">Сохранить отклики</button>
+    </div>
+    <div id="formStatus" class="form-status" role="status" aria-live="polite"></div>
+  </div>
+</section>
 </main>
 <script>
 const PUBLISHED_ID='2PACX-1vQ8xul8qKJkY41l8e_W1ZSdErazAd3cwW_u-ZNRXQcGGQnu5GPYM9oz2w4EvPeyKcdISGOIx5xf6OUs';
+const APPS_SCRIPT_URL='https://script.google.com/macros/s/AKfycbwiP5HpzjI869Tv8Xo32QIaVAMywNKox9Lb0EFD9ZqUy8QnwcKsogcsp_5nFG29xCkteA/exec';
 const GID='0', TZ='Europe/Moscow';
 const $=id=>document.getElementById(id);
 let records=[],busy=false,lastDate=moscowKey();
@@ -155,7 +211,8 @@ function normalizeRecords(rows){
   const platform=String(r[0]?.f??r[0]?.v??'').trim();
   const company=String(r[1]?.f??r[1]?.v??'').trim();
   const date=parseSheetDate(r[2]?.v,r[2]?.f);
-  if(date)out.push({platform:platform||'Не указана',company:company||'Не указана',date,key:dateKey(date)});
+  const job=String(r[3]?.f??r[3]?.v??'').trim();
+   if(date)out.push({platform:platform||'Не указана',company:company||'Не указана',date,key:dateKey(date),job});
  });
  return out;
 }
@@ -190,7 +247,7 @@ function renderComparison(id,actual,baseline,label){
  el.classList.remove('positive','negative','neutral');
  if(baseline===0){
   el.classList.add('neutral');
-  strong.textContent=actual===0?'0%':'Нет базы для сравнения';
+  strong.textContent='Нет базы для сравнения';
   el.firstChild.textContent=label+': ';
   return;
  }
@@ -257,12 +314,155 @@ async function load(){
   updateStats();renderTopTables();drawChart();
   const t=new Intl.DateTimeFormat('ru-RU',{timeZone:TZ,dateStyle:'short',timeStyle:'medium'}).format(new Date());
   $('status').textContent=`Данные загружены: ${t}`;
-  $('updated').textContent='Автоматическая загрузка при открытии и в 00:00 по Москве, если страница остаётся открытой. Средние значения включают календарные дни без откликов.';
+  $('updated').textContent='Автоматическая загрузка при открытии и в 00:00 по Москве, если страница остаётся открытой.';
  }catch(e){$('status').classList.add('error');$('status').textContent='Ошибка загрузки: '+(e.message||e);}
  finally{busy=false;$('refresh').disabled=false;}
 }
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function escapeAttr(s){return escapeHtml(s);}
+
+// --- Форма добавления откликов ---
+let recordGroupId=0;
+const NEW_PLATFORM_VALUE='__new_platform__';
+function showView(view){
+  const add=view==='add';
+  $('analyticsView').hidden=add;
+  $('addView').hidden=!add;
+  if(add){$('formStatus').className='form-status';$('formStatus').textContent='';}
+  window.scrollTo({top:0,behavior:'instant'});
+}
+function platformOptions(selected=''){
+  const names=[...new Set(records.map(r=>r.platform).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ru'));
+  return '<option value="">Выбрать площадку</option>'+
+    names.map(n=>`<option value="${escapeAttr(n)}"${n===selected?' selected':''}>${escapeHtml(n)}</option>`).join('')+
+    `<option value="${NEW_PLATFORM_VALUE}">＋ Добавить новую площадку…</option>`;
+}
+function addRecordGroup(){
+  if($('recordGroups').children.length>=5)return;
+  const n=++recordGroupId,wrap=document.createElement('div');
+  wrap.className='record-group';wrap.dataset.group=String(n);
+  const today=moscowKey();
+  wrap.innerHTML=`
+    <div class="record-group-head"><strong>Отклик № ${n}</strong>${n>1?'<button type="button" class="remove-record">Удалить</button>':''}</div>
+    <div class="form-grid">
+      <div class="field">
+        <label for="platform-${n}">Площадка *</label>
+        <select id="platform-${n}" class="platform-select" required>${platformOptions()}</select>
+        <div class="new-platform-wrap" id="new-platform-wrap-${n}">
+          <input id="new-platform-${n}" type="text" maxlength="100" placeholder="Название новой площадки">
+        </div>
+      </div>
+      <div class="field"><label for="company-${n}">Компания *</label><input id="company-${n}" type="text" maxlength="200" placeholder="Название компании" required></div>
+      <div class="field"><label for="date-${n}">Дата отклика *</label><input id="date-${n}" type="date" value="${today}" required></div>
+      <div class="field">
+        <label class="job-label" for="job-${n}">Название должности
+          <span class="info-wrap"><span class="info-icon" tabindex="0" aria-label="Подсказка">i</span><span class="tooltip">Название должности поможет построить качественную аналитику.</span></span>
+        </label>
+        <input id="job-${n}" type="text" maxlength="200" placeholder="Например, Руководитель клиентского сервиса">
+      </div>
+    </div>`;
+  $('recordGroups').appendChild(wrap);
+  wrap.querySelector('.platform-select').addEventListener('change',e=>{
+    const box=$(`new-platform-wrap-${n}`);
+    box.classList.toggle('visible',e.target.value===NEW_PLATFORM_VALUE);
+    if(e.target.value===NEW_PLATFORM_VALUE)$(`new-platform-${n}`).focus();
+  });
+  const remove=wrap.querySelector('.remove-record');
+  if(remove)remove.addEventListener('click',()=>{wrap.remove();renumberGroups();});
+  updateAddButton();
+}
+function renumberGroups(){
+  [...$('recordGroups').children].forEach((el,i)=>{el.querySelector('.record-group-head strong').textContent=`Отклик № ${i+1}`;});
+  updateAddButton();
+}
+function updateAddButton(){
+  $('addRecord').disabled=$('recordGroups').children.length>=5;
+  $('addRecord').textContent=$('recordGroups').children.length>=5?'Достигнут лимит — 5 откликов':'＋ Добавить ещё отклик';
+}
+function readFormRecords(){
+  const groups=[...$('recordGroups').children];
+  if(!groups.length)throw new Error('Добавь хотя бы один отклик.');
+  return groups.map((group,i)=>{
+    const n=group.dataset.group;
+    const selected=$(`platform-${n}`).value;
+    const platform=selected===NEW_PLATFORM_VALUE?$(`new-platform-${n}`).value.trim():selected;
+    const company=$(`company-${n}`).value.trim();
+    const date=$(`date-${n}`).value;
+    const job=$(`job-${n}`).value.trim();
+    if(!platform)throw new Error(`Отклик № ${i+1}: выбери площадку или укажи новую.`);
+    if(!company)throw new Error(`Отклик № ${i+1}: укажи компанию.`);
+    if(!date)throw new Error(`Отклик № ${i+1}: укажи дату.`);
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(date))throw new Error(`Отклик № ${i+1}: некорректная дата.`);
+    if(date>moscowKey())throw new Error(`Отклик № ${i+1}: дата не может быть в будущем.`);
+    return {platform,company,date,job};
+  });
+}
+function formMessage(message,type=''){
+  const el=$('formStatus');el.textContent=message;el.className='form-status visible'+(type?' '+type:'');
+}
+async function verifySavedRecords(expected){
+  // Wait for the published sheet to reflect the rows written by Apps Script.
+  for(let attempt=0;attempt<5;attempt++){
+    await new Promise(resolve=>setTimeout(resolve,1800));
+    try{
+      const result=await getSheetRows(),fresh=normalizeRecords(result.rows);
+      const counts=new Map();
+      fresh.forEach(r=>{const k=[r.platform,r.company,r.key,r.job||''].join('|');counts.set(k,(counts.get(k)||0)+1);});
+      const needed=new Map();
+      expected.forEach(r=>{const k=[r.platform,r.company,r.date,r.job||''].join('|');needed.set(k,(needed.get(k)||0)+1);});
+      let ok=true;for(const [k,v] of needed)if((counts.get(k)||0)<v){ok=false;break;}
+      if(ok){records=fresh;return true;}
+    }catch(e){}
+  }
+  return false;
+}
+async function submitRecords(){
+  const btn=$('submitRecords');
+  if(btn.disabled)return;
+  let payload;
+  try{payload=readFormRecords();}catch(e){formMessage(e.message,'error');return;}
+  btn.disabled=true;formMessage('Отправляю отклики в Google Sheets…');
+  try{
+    // Apps Script accepts a URL-encoded "payload" parameter via POST.
+    const frame=document.createElement('iframe');
+    const target='gsheet-submit-'+Date.now();
+    frame.name=target;frame.style.display='none';frame.setAttribute('aria-hidden','true');
+    const initialFrameLoad=new Promise(resolve=>frame.addEventListener('load',resolve,{once:true}));
+    document.body.appendChild(frame);
+    await initialFrameLoad;
+    const form=document.createElement('form');
+    form.method='POST';form.action=APPS_SCRIPT_URL;form.target=target;form.style.display='none';
+    const input=document.createElement('input');input.type='hidden';input.name='payload';input.value=JSON.stringify({records:payload});
+    form.appendChild(input);document.body.appendChild(form);
+    let settled=false;
+    const result=new Promise((resolve,reject)=>{
+      const timer=setTimeout(()=>{if(!settled){settled=true;reject(new Error('Не удалось получить ответ от Google Apps Script. Проверь доступ к веб-приложению и попробуй ещё раз.'));}},25000);
+      frame.addEventListener('load',()=>{if(!settled){settled=true;clearTimeout(timer);resolve();}},{once:true});
+    });
+    form.submit();
+    await result;
+    form.remove();frame.remove();
+    formMessage('Запрос отправлен. Проверяю, появились ли записи в таблице…');
+    const verified=await verifySavedRecords(payload);
+    if(!verified)throw new Error('Google Apps Script получил запрос, но новые строки пока не появились в опубликованной таблице. Проверь развёртывание и доступ к таблице; не отправляй повторно, пока не убедишься, что записи не добавились.');
+    updateStats();renderTopTables();drawChart();
+    const platforms=[...new Set(records.map(r=>r.platform))].sort((a,b)=>a.localeCompare(b,'ru'));
+    const select=$('platformFilter'),prev=select.value;
+    select.innerHTML='<option value="__all__">Все площадки</option>'+platforms.map(v=>`<option value="${escapeAttr(v)}">${escapeHtml(v)}</option>`).join('');
+    select.value=platforms.includes(prev)?prev:'__all__';
+    updateStats();renderTopTables();drawChart();
+    $('status').textContent='Данные обновлены после добавления откликов.';
+    $('updated').textContent='Автоматическая загрузка при открытии и в 00:00 по Москве, если страница остаётся открытой.';
+    formMessage(`Успешно добавлено откликов: ${payload.length}. Аналитика обновлена.`,'success');
+    $('recordGroups').replaceChildren();addRecordGroup();showView('analytics');
+  }catch(e){formMessage(e.message||String(e),'error');}
+  finally{btn.disabled=false;}
+}
+$('openAdd').addEventListener('click',()=>{if(records.length){$('recordGroups').replaceChildren();addRecordGroup();showView('add');}else{formMessage('Сначала дождись загрузки данных аналитики.');showView('add');if(!$('recordGroups').children.length)addRecordGroup();}});
+$('backToAnalytics').addEventListener('click',()=>showView('analytics'));
+$('addRecord').addEventListener('click',addRecordGroup);
+$('submitRecords').addEventListener('click',submitRecords);
+
 $('refresh').addEventListener('click',load);
 $('platformFilter').addEventListener('change',()=>{updateStats();renderTopTables();drawChart();});
 $('chartMode').addEventListener('change',drawChart);
