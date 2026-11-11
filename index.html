@@ -82,6 +82,34 @@ button{background:var(--accent);color:#101827;border:0;border-radius:9px;padding
 .funnel-caption strong{color:var(--text)}
 @media(max-width:650px){.pie-layout{grid-template-columns:1fr}.pie-legend{grid-template-columns:1fr 1fr}.search-row{display:block}}
 
+
+.register-footer{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-top:14px}
+.register-footer .hint{margin:0}
+.register-footer button{min-width:220px}
+.status-check{width:18px;height:18px;accent-color:var(--accent);cursor:pointer}
+.status-check.pending{outline:2px solid #f4c56a;outline-offset:3px}
+.pie-layout{display:grid;grid-template-columns:minmax(220px,1fr) minmax(170px,1fr);gap:20px;align-items:center;min-height:270px}
+.pie3d{width:min(100%,300px);aspect-ratio:1.15;position:relative;margin:0 auto;display:grid;place-items:center;isolation:isolate}
+.pie3d:before{content:"";position:absolute;inset:18% 7% 0;border-radius:50%;background:#05070b;filter:blur(12px);opacity:.65;transform:translateY(20px);z-index:-2}
+.pie3d-disc{position:absolute;inset:5% 4% 12%;border-radius:50%;background:conic-gradient(var(--pie-stops));transform:perspective(900px) rotateX(52deg);transform-origin:center 58%;box-shadow:0 17px 0 rgba(0,0,0,.42),0 25px 35px rgba(0,0,0,.28);overflow:hidden}
+.pie3d-disc:after{content:"";position:absolute;inset:0;border-radius:50%;background:linear-gradient(145deg,rgba(255,255,255,.36),transparent 42%,rgba(0,0,0,.24) 90%);mix-blend-mode:screen}
+.pie3d-hole{position:absolute;left:50%;top:45%;width:36%;aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%) perspective(900px) rotateX(52deg);background:radial-gradient(circle at 35% 28%,#39475d,#171e2b 66%,#0b1019);box-shadow:inset 0 8px 16px rgba(0,0,0,.7),0 7px 0 rgba(0,0,0,.3);z-index:1}
+.pie-center{position:absolute;left:50%;top:43%;transform:translate(-50%,-50%);text-align:center;z-index:2;text-shadow:0 2px 8px #000;width:40%}
+.pie-center strong{display:block;font-size:clamp(20px,2.5vw,28px);line-height:1.1}
+.pie-center span{font-size:10px;color:#d5deec}
+.pie-legend{display:grid;gap:10px;max-height:280px;overflow:auto;padding-right:4px}
+.pie-legend-item{display:grid;grid-template-columns:11px 1fr auto;gap:9px;align-items:center;font-size:13px;padding:7px 9px;border:1px solid rgba(255,255,255,.06);border-radius:9px;background:rgba(255,255,255,.025)}
+.pie-swatch{width:10px;height:10px;border-radius:50%;box-shadow:0 0 10px currentColor}
+.pie-legend-item span:nth-child(2){color:var(--muted);overflow-wrap:anywhere}
+.pie-legend-item strong{font-variant-numeric:tabular-nums}
+.funnel-wrap{overflow-x:auto;padding:8px 0 4px}
+.funnel-svg{display:block;width:100%;min-width:520px;max-height:400px;filter:drop-shadow(0 14px 15px rgba(0,0,0,.25))}
+.funnel-caption{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:6px}
+.funnel-kpi{padding:11px 13px;border-radius:11px;background:linear-gradient(145deg,#222d40,#151c28);border:1px solid rgba(255,255,255,.07)}
+.funnel-kpi span{display:block;color:var(--muted);font-size:11px}
+.funnel-kpi strong{display:block;margin-top:4px;font-size:19px;font-variant-numeric:tabular-nums}
+@media(max-width:650px){.pie-layout{grid-template-columns:1fr}.pie-legend{grid-template-columns:1fr 1fr}.funnel-caption{grid-template-columns:1fr}.register-footer{align-items:stretch}.register-footer button{width:100%}}
+
 @media(max-width:650px){.add-view{width:calc(100vw - 30px)}.form-toolbar{align-items:flex-start;flex-direction:column}.form-grid{grid-template-columns:1fr}.form-actions button{width:100%}.record-group{padding:12px}}
 
 @media(max-width:800px){body{padding:15px}.cards{grid-template-columns:1fr}.top-grid{grid-template-columns:1fr}.big{font-size:30px}.panel{padding:14px}.panel-head{display:block}}
@@ -167,6 +195,10 @@ button{background:var(--accent);color:#101827;border:0;border-radius:9px;padding
     <div class="panel-head"><div><h2>Все отклики</h2><div class="hint">Отметки о приглашениях и офферах сохраняются в Google Sheets.</div></div></div>
     <div class="search-row"><input id="recordSearch" type="search" placeholder="Поиск по площадке, компании или дате отклика…"></div>
     <div id="recordsTable" class="table-scroll"><div class="empty">Загружаю отклики…</div></div>
+    <div class="register-footer">
+      <div id="statusSaveHint" class="hint">Изменения отметок можно подтвердить кнопкой ниже.</div>
+      <button id="saveStatuses" type="button" disabled>Добавить отклик/оффер</button>
+    </div>
   </section>
 </section>
 </main>
@@ -311,35 +343,49 @@ function buildCountTable(containerId,entries,leftHeader,rightHeader){
 const pieColors=['#77a9ff','#8bd5a7','#f4c56a','#d99cff','#ff8585','#64c7c9','#f39b68','#9aa8ff','#c0d17b','#d78cae'];
 function renderPlatformPie(map){
   const root=$('platformChart'),entries=[...map.entries()].sort((a,b)=>b[1]-a[1]);
-  const total=entries.reduce((s,x)=>s+x[1],0);
+  const total=entries.reduce((sum,item)=>sum+item[1],0);
   if(!total){root.innerHTML='<div class="empty">Нет данных для диаграммы.</div>';return;}
-  let start=0;const stops=[];
-  entries.forEach(([name,count],i)=>{const end=start+count/total*100;stops.push(`${pieColors[i%pieColors.length]} ${start}% ${end}%`);start=end;});
-  root.innerHTML=`<div class="pie3d"><div class="pie3d-disc" style="background:conic-gradient(${stops.join(',')})"></div><div class="pie-center"><strong>${total.toLocaleString('ru-RU')}</strong><span>всего откликов</span></div></div><div class="pie-legend">${entries.map(([name,count],i)=>`<div class="pie-legend-item"><i class="pie-swatch" style="background:${pieColors[i%pieColors.length]}"></i><span>${escapeHtml(name)}</span><strong>${(count/total*100).toLocaleString('ru-RU',{maximumFractionDigits:1})}%</strong></div>`).join('')}</div>`;
+  let cursor=0;
+  const stops=entries.map(([name,count],i)=>{
+    const from=cursor;cursor+=count/total*100;
+    return `${pieColors[i%pieColors.length]} ${from.toFixed(3)}% ${cursor.toFixed(3)}%`;
+  }).join(',');
+  root.innerHTML=`<div class="pie3d"><div class="pie3d-disc" style="--pie-stops:conic-gradient(${stops})"></div><div class="pie3d-hole"></div><div class="pie-center"><strong>${total.toLocaleString('ru-RU')}</strong><span>ВСЕ ОТКЛИКИ</span></div></div><div class="pie-legend">${entries.map(([name,count],i)=>`<div class="pie-legend-item"><i class="pie-swatch" style="background:${pieColors[i%pieColors.length]};color:${pieColors[i%pieColors.length]}"></i><span>${escapeHtml(name)}</span><strong>${(count/total*100).toLocaleString('ru-RU',{maximumFractionDigits:1})}%</strong></div>`).join('')}</div>`;
 }
 function renderHiringFunnel(){
-  const root=$('hiringFunnel'),total=records.length,invited=records.filter(r=>r.invited).length,offers=records.filter(r=>r.offer).length;
-  const maxW=620,minW=190,center=360,levels=[
-    {label:'Отклики',count:total,color:'#77a9ff'},
-    {label:'Приглашения',count:invited,color:'#8bd5a7'},
-    {label:'Офферы',count:offers,color:'#d99cff'}
-  ];
+  const root=$('hiringFunnel');
+  const total=records.length,invited=records.filter(r=>r.invited).length,offers=records.filter(r=>r.offer).length;
   if(!total){root.innerHTML='<div class="empty">Нет данных для воронки.</div>';return;}
-  let svg=`<svg class="funnel-svg" viewBox="0 0 720 350" role="img" aria-label="Воронка откликов, приглашений и офферов">`;
-  levels.forEach((v,i)=>{
-    const w=Math.max(minW,maxW*(v.count/total)),next=i<2?Math.max(minW,maxW*(levels[i+1].count/total)):Math.max(minW,w*.82);
-    const y=18+i*105,h=82,x1=center-w/2,x2=center+w/2,nx1=center-next/2,nx2=center+next/2;
-    const points=`${x1},${y} ${x2},${y} ${nx2},${y+h} ${nx1},${y+h}`;
-    svg+=`<polygon points="${points}" fill="${v.color}" opacity=".88" stroke="rgba(255,255,255,.28)" stroke-width="1"/>`;
-    svg+=`<polygon points="${x2},${y} ${x2+18},${y+9} ${nx2+18},${y+h+9} ${nx2},${y+h}" fill="${v.color}" opacity=".45"/>`;
-    svg+=`<text x="${center}" y="${y+31}" text-anchor="middle" fill="#101827" font-size="16" font-weight="700">${v.label}</text>`;
-    svg+=`<text x="${center}" y="${y+58}" text-anchor="middle" fill="#101827" font-size="20" font-weight="800">${v.count.toLocaleString('ru-RU')}</text>`;
+  const center=360,topWidths=[600,Math.max(180,600*invited/total),Math.max(150,600*offers/total)];
+  const labels=[
+    {title:'ОТКЛИКИ',value:total,rate:100,grad:'url(#g1)'},
+    {title:'ПРИГЛАШЕНИЯ',value:invited,rate:invited/total*100,grad:'url(#g2)'},
+    {title:'ОФФЕРЫ',value:offers,rate:offers/total*100,grad:'url(#g3)'}
+  ];
+  let svg=`<svg class="funnel-svg" viewBox="0 0 740 355" role="img" aria-label="Воронка откликов, приглашений и офферов">
+  <defs>
+    <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#a4c7ff"/><stop offset=".55" stop-color="#528cf0"/><stop offset="1" stop-color="#2754a2"/></linearGradient>
+    <linearGradient id="g2" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#a6f0c0"/><stop offset=".55" stop-color="#51bd83"/><stop offset="1" stop-color="#23734d"/></linearGradient>
+    <linearGradient id="g3" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#e2b8ff"/><stop offset=".55" stop-color="#a76be1"/><stop offset="1" stop-color="#653a9d"/></linearGradient>
+    <linearGradient id="side" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#080d16" stop-opacity=".08"/><stop offset="1" stop-color="#080d16" stop-opacity=".55"/></linearGradient>
+  </defs>`;
+  labels.forEach((v,i)=>{
+    const y=12+i*111,h=82,w=topWidths[i],next=i<2?topWidths[i+1]:Math.max(130,w*.82);
+    const x1=center-w/2,x2=center+w/2,nx1=center-next/2,nx2=center+next/2;
+    svg+=`<polygon points="${x1},${y} ${x2},${y} ${nx2},${y+h} ${nx1},${y+h}" fill="${v.grad}" stroke="rgba(255,255,255,.45)" stroke-width="1.2"/>`;
+    svg+=`<polygon points="${x2},${y} ${x2+17},${y+10} ${nx2+17},${y+h+10} ${nx2},${y+h}" fill="url(#side)"/>`;
+    svg+=`<path d="M ${x1+8} ${y+7} L ${x2-8} ${y+7}" stroke="rgba(255,255,255,.32)" stroke-width="2" stroke-linecap="round"/>`;
+    svg+=`<text x="${center}" y="${y+32}" text-anchor="middle" fill="#101827" font-size="14" font-weight="800" letter-spacing="1.5">${v.title}</text>`;
+    svg+=`<text x="${center}" y="${y+60}" text-anchor="middle" fill="#101827" font-size="23" font-weight="900">${v.value.toLocaleString('ru-RU')} <tspan font-size="13" font-weight="700">· ${v.rate.toLocaleString('ru-RU',{maximumFractionDigits:1})}%</tspan></text>`;
   });
   svg+='</svg>';
-  const inviteRate=(invited/total*100),offerRate=(offers/total*100),offerFromInvite=invited?offers/invited*100:0;
-  root.innerHTML=svg+`<div class="funnel-caption"><span>Отклик → приглашение: <strong>${inviteRate.toLocaleString('ru-RU',{maximumFractionDigits:1})}%</strong></span><span>Отклик → оффер: <strong>${offerRate.toLocaleString('ru-RU',{maximumFractionDigits:1})}%</strong></span><span>Приглашение → оффер: <strong>${offerFromInvite.toLocaleString('ru-RU',{maximumFractionDigits:1})}%</strong></span></div>`;
+  const inviteRate=invited/total*100,offerRate=offers/total*100,offerFromInvite=invited?offers/invited*100:0;
+  root.innerHTML=svg+`<div class="funnel-caption">
+    <div class="funnel-kpi"><span>Конверсия отклик → приглашение</span><strong>${inviteRate.toLocaleString('ru-RU',{maximumFractionDigits:1})}%</strong></div>
+    <div class="funnel-kpi"><span>Конверсия отклик → оффер</span><strong>${offerRate.toLocaleString('ru-RU',{maximumFractionDigits:1})}%</strong></div>
+    <div class="funnel-kpi"><span>Конверсия приглашение → оффер</span><strong>${offerFromInvite.toLocaleString('ru-RU',{maximumFractionDigits:1})}%</strong></div>
+  </div>`;
 }
-
 function renderTopTables(){
  const data=selectedRecords(),companies=new Map(),platforms=new Map();
  data.forEach(r=>companies.set(r.company,(companies.get(r.company)||0)+1));
@@ -385,7 +431,7 @@ async function load(){
   const select=$('platformFilter'),previous=select.value;
   select.innerHTML='<option value="__all__">Все площадки</option>'+platforms.map(v=>`<option value="${escapeAttr(v)}">${escapeHtml(v)}</option>`).join('');
   select.value=platforms.includes(previous)?previous:'__all__';select.disabled=false;
-  updateStats();renderTopTables();drawChart();
+  updateStats();renderTopTables();drawChart();renderRecordsTable();
   const t=new Intl.DateTimeFormat('ru-RU',{timeZone:TZ,dateStyle:'short',timeStyle:'medium'}).format(new Date());
   $('status').textContent=`Данные загружены: ${t}`;
   $('updated').textContent='Автоматическая загрузка при открытии и в 00:00 по Москве, если страница остаётся открытой.';
@@ -476,29 +522,58 @@ function readFormRecords(){
 }
 
 function formatDateRu(d){return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`;}
+const pendingStatuses=new Map();
 function renderRecordsTable(){
   const root=$('recordsTable');if(!root)return;
   const query=($('recordSearch')?.value||'').trim().toLowerCase();
   const rows=records.filter(r=>[r.platform,r.company,formatDateRu(r.date),r.key,r.job||''].join(' ').toLowerCase().includes(query))
     .sort((a,b)=>b.date-a.date||b.sheetRow-a.sheetRow);
   if(!rows.length){root.innerHTML='<div class="empty">Совпадений не найдено.</div>';return;}
-  root.innerHTML=`<table class="register-table"><thead><tr><th>Площадка</th><th>Компания</th><th>Дата отклика</th><th>Название должности</th><th class="check-cell">Пригласили?</th><th class="check-cell">Оффер?</th></tr></thead><tbody>${rows.map(r=>`<tr data-row="${r.sheetRow}"><td>${escapeHtml(r.platform)}</td><td>${escapeHtml(r.company)}</td><td>${formatDateRu(r.date)}</td><td>${escapeHtml(r.job||'—')}</td><td class="check-cell"><input class="status-check" type="checkbox" data-status="invited" ${r.invited?'checked':''} aria-label="Пригласили: ${escapeHtml(r.company)}"></td><td class="check-cell"><input class="status-check" type="checkbox" data-status="offer" ${r.offer?'checked':''} aria-label="Оффер: ${escapeHtml(r.company)}"></td></tr>`).join('')}</tbody></table>`;
-  root.querySelectorAll('.status-check').forEach(box=>box.addEventListener('change',async()=>{
+  root.innerHTML=`<table class="register-table"><thead><tr><th>Площадка</th><th>Компания</th><th>Дата отклика</th><th>Название должности</th><th class="check-cell">Пригласили?</th><th class="check-cell">Оффер?</th></tr></thead><tbody>${rows.map(r=>`<tr data-row="${r.sheetRow}"><td>${escapeHtml(r.platform)}</td><td>${escapeHtml(r.company)}</td><td>${formatDateRu(r.date)}</td><td>${escapeHtml(r.job||'—')}</td><td class="check-cell"><input class="status-check" type="checkbox" data-status="invited" ${(pendingStatuses.get(r.sheetRow)?.invited??r.invited)?'checked':''} aria-label="Пригласили: ${escapeHtml(r.company)}"></td><td class="check-cell"><input class="status-check" type="checkbox" data-status="offer" ${(pendingStatuses.get(r.sheetRow)?.offer??r.offer)?'checked':''} aria-label="Оффер: ${escapeHtml(r.company)}"></td></tr>`).join('')}</tbody></table>`;
+  root.querySelectorAll('.status-check').forEach(box=>box.addEventListener('change',()=>{
     const tr=box.closest('tr'),row=Number(tr.dataset.row),record=records.find(x=>x.sheetRow===row);
     if(!record)return;
-    const previous=box.checked;box.disabled=true;tr.classList.add('saving');
-    const invited=box.dataset.status==='invited'?previous:record.invited;
-    const offer=box.dataset.status==='offer'?previous:record.offer;
-    try{
-      await postAppsScript({action:'updateStatus',row,invited,offer});
-      const verified=await verifyStatus(row,invited,offer);
-      if(!verified)throw new Error('Изменение не подтвердилось в таблице. Проверь доступ и обнови данные.');
-      record.invited=invited;record.offer=offer;
-      renderHiringFunnel();
-    }catch(e){box.checked=!previous;alert(e.message||String(e));}
-    finally{box.disabled=false;tr.classList.remove('saving');}
+    const current=pendingStatuses.get(row)||{invited:record.invited,offer:record.offer};
+    current[box.dataset.status]=box.checked;
+    if(current.invited===record.invited&&current.offer===record.offer)pendingStatuses.delete(row);
+    else pendingStatuses.set(row,current);
+    tr.querySelectorAll('.status-check').forEach(input=>{
+      const staged=pendingStatuses.get(row);
+      input.classList.toggle('pending',!!staged);
+    });
+    updateStatusSaveButton();
   }));
 }
+
+function updateStatusSaveButton(){
+  const btn=$('saveStatuses');if(!btn)return;
+  const count=pendingStatuses.size;btn.disabled=count===0;
+  $('statusSaveHint').textContent=count?`Подготовлено изменений: ${count}. Нажми кнопку, чтобы сохранить отметки в таблице.`:'Нет несохранённых изменений.';
+}
+async function savePendingStatuses(){
+  const btn=$('saveStatuses');if(btn.disabled)return;
+  const updates=[...pendingStatuses.entries()].map(([row,status])=>({row,invited:status.invited,offer:status.offer}));
+  btn.disabled=true;btn.textContent='Сохраняю…';
+  try{
+    await postAppsScript({action:'updateStatuses',updates});
+    let confirmed=false;
+    for(let attempt=0;attempt<6;attempt++){
+      await new Promise(resolve=>setTimeout(resolve,1200));
+      try{
+        const result=await getSheetRows(),fresh=normalizeRecords(result.rows);
+        const all=updates.every(u=>{const rec=fresh.find(r=>r.sheetRow===u.row);return rec&&rec.invited===u.invited&&rec.offer===u.offer;});
+        if(all){records=fresh;confirmed=true;break;}
+      }catch(e){}
+    }
+    if(!confirmed)throw new Error('Не удалось подтвердить сохранение отметок в Google Sheets. Проверь таблицу перед повторной отправкой.');
+    pendingStatuses.clear();renderRecordsTable();renderTopTables();
+    $('statusSaveHint').textContent=`Сохранено изменений: ${updates.length}. Воронка обновлена.`;
+  }catch(e){
+    $('statusSaveHint').textContent=e.message||String(e);
+    $('statusSaveHint').style.color='var(--danger)';
+  }finally{btn.textContent='Добавить отклик/оффер';updateStatusSaveButton();}
+}
+
 function postAppsScript(payload){
   return new Promise((resolve,reject)=>{
     const frame=document.createElement('iframe'),target='gsheet-post-'+Date.now()+'-'+Math.random().toString(36).slice(2);
@@ -557,13 +632,14 @@ async function submitRecords(){
     updateStats();renderTopTables();drawChart();
     $('status').textContent='Данные обновлены после добавления откликов.';
     formMessage(`Успешно добавлено откликов: ${payload.length}. Аналитика обновлена.`,'success');
-    $('recordGroups').replaceChildren();recordGroupCount=0;addRecordGroup();showView('analytics');
+    $('recordGroups').replaceChildren();recordGroupId=0;addRecordGroup();showView('analytics');
   }catch(e){formMessage(e.message||String(e),'error');}
   finally{btn.disabled=false;}
 }
-$('openAdd').addEventListener('click',()=>{if(records.length){$('recordGroups').replaceChildren();addRecordGroup();showView('add');}else{formMessage('Сначала дождись загрузки данных аналитики.');showView('add');if(!$('recordGroups').children.length)addRecordGroup();}});
+$('openAdd').addEventListener('click',()=>{if(records.length){$('recordGroups').replaceChildren();recordGroupId=0;addRecordGroup();renderRecordsTable();showView('add');}else{formMessage('Сначала дождись загрузки данных аналитики.');showView('add');if(!$('recordGroups').children.length)addRecordGroup();}});
 $('backToAnalytics').addEventListener('click',()=>showView('analytics'));
 $('recordSearch').addEventListener('input',renderRecordsTable);
+$('saveStatuses').addEventListener('click',savePendingStatuses);
 $('addRecord').addEventListener('click',addRecordGroup);
 $('submitRecords').addEventListener('click',submitRecords);
 
