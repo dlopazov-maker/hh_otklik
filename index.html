@@ -6,8 +6,13 @@
 <title>Аналитика откликов</title>
 <style>
 :root{color-scheme:dark;--bg:#10131b;--panel:#191f2b;--panel2:#202938;--line:#30394a;--text:#edf1f7;--muted:#9ca8ba;--accent:#77a9ff;--danger:#ff8585;--green:#8bd5a7}
-*{box-sizing:border-box}body{margin:0;padding:26px;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
-main{max-width:1380px;margin:0 auto}h1{font-size:27px;margin:0 0 5px}.subtitle{color:var(--muted);margin-bottom:22px}
+*{box-sizing:border-box}body{margin:0;padding:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+.app-shell{display:flex;min-height:100vh;align-items:stretch}
+.sidebar{width:250px;flex:0 0 250px;background:#171e2a;border-right:1px solid var(--line);padding:18px 12px;transition:width .2s,flex-basis .2s;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:16px;z-index:5}
+.sidebar.collapsed{width:76px;flex-basis:76px}
+.brand-row{display:flex;align-items:center;gap:10px;padding:4px 8px;min-height:42px}.brand-mark{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#78aaff,#7454c8);display:grid;place-items:center;color:#101827;font-weight:900;flex:0 0 34px}.brand-name{font-weight:800;white-space:nowrap;overflow:hidden}.collapse-btn,.nav-btn{background:transparent;color:#c5cfdd;border:1px solid transparent;text-align:left;display:flex;align-items:center;gap:13px;width:100%;padding:11px 12px;border-radius:10px;font-weight:600}.collapse-btn{justify-content:center;border-color:var(--line);margin-top:auto}.nav-btn:hover,.nav-btn.active{background:#29364a;color:#fff;border-color:#3b4b65}.nav-icon{width:22px;flex:0 0 22px;text-align:center;font-size:17px}.nav-label{white-space:nowrap;overflow:hidden}.sidebar.collapsed .brand-name,.sidebar.collapsed .nav-label{display:none}.sidebar.collapsed .nav-btn{justify-content:center;padding:12px 8px}.app-main{flex:1;min-width:0;max-width:1500px;margin:0 auto;padding:26px;width:100%}
+.app-main .add-view{width:100%;max-width:none;left:auto;transform:none}
+.placeholder-view{min-height:55vh;display:grid;place-items:center;text-align:center}.placeholder-card{max-width:440px;padding:35px;background:var(--panel);border:1px solid var(--line);border-radius:15px}.placeholder-card h1{margin-bottom:8px}.placeholder-card p{color:var(--muted)}h1{font-size:27px;margin:0 0 5px}.subtitle{color:var(--muted);margin-bottom:22px}
 .toolbar{display:flex;gap:10px;align-items:center;justify-content:flex-end;flex-wrap:wrap;margin-bottom:16px}
 button{background:var(--accent);color:#101827;border:0;border-radius:9px;padding:10px 15px;font:inherit;font-weight:700;cursor:pointer}button:disabled{opacity:.6;cursor:wait}select{background:#111722;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font:inherit;max-width:100%}#platformFilter{display:block;width:100%;margin:10px 0 2px}
 .status{padding:12px 15px;background:var(--panel);border:1px solid var(--line);border-radius:10px;margin-bottom:18px;overflow-wrap:anywhere}.status.error{border-color:#784747;color:#ffd1d1}
@@ -63,6 +68,7 @@ button{background:var(--accent);color:#101827;border:0;border-radius:9px;padding
 .register-table td:last-child,.register-table th:last-child{text-align:left}
 .register-table .check-cell{text-align:center!important;width:105px}
 .register-table .check-cell input{width:18px;height:18px;accent-color:var(--accent);cursor:pointer}
+.status-select{min-width:88px;width:100%;max-width:110px;padding:8px 9px!important;border-radius:8px!important}.status-select.pending{border-color:#f4c56a!important;box-shadow:0 0 0 2px #f4c56a22}
 .register-table .saving{opacity:.45;pointer-events:none}
 .pie-layout{display:grid;grid-template-columns:minmax(180px,1fr) minmax(150px,1fr);gap:18px;align-items:center;min-height:240px}
 .pie3d{width:min(100%,270px);aspect-ratio:1.25;position:relative;margin:0 auto;display:flex;align-items:center;justify-content:center}
@@ -112,11 +118,22 @@ button{background:var(--accent);color:#101827;border:0;border-radius:9px;padding
 
 @media(max-width:650px){.add-view{width:calc(100vw - 30px)}.form-toolbar{align-items:flex-start;flex-direction:column}.form-grid{grid-template-columns:1fr}.form-actions button{width:100%}.record-group{padding:12px}}
 
-@media(max-width:800px){body{padding:15px}.cards{grid-template-columns:1fr}.top-grid{grid-template-columns:1fr}.big{font-size:30px}.panel{padding:14px}.panel-head{display:block}}
+@media(max-width:800px){.app-main{padding:15px}.sidebar{width:76px;flex-basis:76px;padding:14px 8px}.sidebar .brand-name,.sidebar .nav-label{display:none}.sidebar .nav-btn{justify-content:center;padding:12px 8px}.sidebar .brand-row{justify-content:center;padding:4px 0}.sidebar .collapse-btn{display:none}.cards{grid-template-columns:1fr}.top-grid{grid-template-columns:1fr}.big{font-size:30px}.panel{padding:14px}.panel-head{display:block}}
 </style>
 </head>
 <body>
-<main>
+<div class="app-shell">
+<aside id="sidebar" class="sidebar">
+  <div class="brand-row"><div class="brand-mark">CS</div><div class="brand-name">CS Intelligence</div></div>
+  <nav aria-label="Основное меню">
+    <button type="button" class="nav-btn active" data-view="analytics"><span class="nav-icon">▥</span><span class="nav-label">Аналитика</span></button>
+    <button type="button" class="nav-btn" data-view="add"><span class="nav-icon">▤</span><span class="nav-label">Отклики и приглашения</span></button>
+    <button type="button" class="nav-btn" data-view="settings"><span class="nav-icon">⚙</span><span class="nav-label">Настройки</span></button>
+    <button type="button" class="nav-btn" data-view="profile"><span class="nav-icon">◉</span><span class="nav-label">Профиль</span></button>
+  </nav>
+  <button type="button" id="collapseSidebar" class="collapse-btn" aria-label="Свернуть меню">⇤</button>
+</aside>
+<main class="app-main">
 <section id="analyticsView">
   <h1>Аналитика откликов</h1>
   <div class="subtitle">Статистика по датам откликов и компаниям из Google Sheets</div>
@@ -197,11 +214,15 @@ button{background:var(--accent);color:#101827;border:0;border-radius:9px;padding
     <div id="recordsTable" class="table-scroll"><div class="empty">Загружаю отклики…</div></div>
     <div class="register-footer">
       <div id="statusSaveHint" class="hint">Изменения отметок можно подтвердить кнопкой ниже.</div>
-      <button id="saveStatuses" type="button" disabled>Добавить отклик/оффер</button>
+      <button id="saveStatuses" type="button" disabled>Добавить</button>
     </div>
   </section>
 </section>
+<section id="placeholderView" class="placeholder-view" hidden>
+  <div class="placeholder-card"><h1 id="placeholderTitle">Раздел в разработке</h1><p>Этот раздел появится в одной из следующих версий CS Intelligence.</p></div>
+</section>
 </main>
+</div>
 <script>
 const PUBLISHED_ID='2PACX-1vQ8xul8qKJkY41l8e_W1ZSdErazAd3cwW_u-ZNRXQcGGQnu5GPYM9oz2w4EvPeyKcdISGOIx5xf6OUs';
 const APPS_SCRIPT_URL='https://script.google.com/macros/s/AKfycbwiP5HpzjI869Tv8Xo32QIaVAMywNKox9Lb0EFD9ZqUy8QnwcKsogcsp_5nFG29xCkteA/exec';
@@ -461,9 +482,12 @@ function escapeAttr(s){return escapeHtml(s);}
 let recordGroupId=0;
 const NEW_PLATFORM_VALUE='__new_platform__';
 function showView(view){
-  const add=view==='add';
-  $('analyticsView').hidden=add;
+  const add=view==='add',analytics=view==='analytics',placeholder=!add&&!analytics;
+  $('analyticsView').hidden=!analytics;
   $('addView').hidden=!add;
+  $('placeholderView').hidden=!placeholder;
+  if(placeholder)$('placeholderTitle').textContent=view==='settings'?'Настройки':'Профиль';
+  document.querySelectorAll('.nav-btn').forEach(btn=>btn.classList.toggle('active',btn.dataset.view===view));
   if(add){$('formStatus').className='form-status';$('formStatus').textContent='';}
   window.scrollTo({top:0,behavior:'instant'});
 }
@@ -545,22 +569,17 @@ function renderRecordsTable(){
   const rows=records.filter(r=>[r.platform,r.company,formatDateRu(r.date),r.key,r.job||''].join(' ').toLowerCase().includes(query))
     .sort((a,b)=>b.date-a.date||b.sheetRow-a.sheetRow);
   if(!rows.length){root.innerHTML='<div class="empty">Совпадений не найдено.</div>';return;}
-  root.innerHTML=`<table class="register-table"><thead><tr><th>Площадка</th><th>Компания</th><th>Дата отклика</th><th>Название должности</th><th class="check-cell">Пригласили?</th><th class="check-cell">Оффер?</th></tr></thead><tbody>${rows.map(r=>`<tr data-row="${r.sheetRow}"><td>${escapeHtml(r.platform)}</td><td>${escapeHtml(r.company)}</td><td>${formatDateRu(r.date)}</td><td>${escapeHtml(r.job||'—')}</td><td class="check-cell"><input class="status-check" type="checkbox" data-status="invited" ${(pendingStatuses.get(r.sheetRow)?.invited??r.invited)?'checked':''} aria-label="Пригласили: ${escapeHtml(r.company)}"></td><td class="check-cell"><input class="status-check" type="checkbox" data-status="offer" ${(pendingStatuses.get(r.sheetRow)?.offer??r.offer)?'checked':''} aria-label="Оффер: ${escapeHtml(r.company)}"></td></tr>`).join('')}</tbody></table>`;
-  root.querySelectorAll('.status-check').forEach(box=>box.addEventListener('change',()=>{
-    const tr=box.closest('tr'),row=Number(tr.dataset.row),record=records.find(x=>x.sheetRow===row);
-    if(!record)return;
+  const statusSelect=(row,key,value,label)=>`<select class="status-select" data-status="${key}" data-row="${row}" aria-label="${label}"><option value="false" ${value?'':'selected'}>Нет</option><option value="true" ${value?'selected':''}>Да</option></select>`;
+  root.innerHTML=`<table class="register-table"><thead><tr><th>Площадка</th><th>Компания</th><th>Дата отклика</th><th>Название должности</th><th>Пригласили?</th><th>Оффер?</th></tr></thead><tbody>${rows.map(r=>{const staged=pendingStatuses.get(r.sheetRow)||{};const invited=staged.invited??r.invited,offer=staged.offer??r.offer;return `<tr data-row="${r.sheetRow}"><td>${escapeHtml(r.platform)}</td><td>${escapeHtml(r.company)}</td><td>${formatDateRu(r.date)}</td><td>${escapeHtml(r.job||'—')}</td><td>${statusSelect(r.sheetRow,'invited',invited,`Пригласили: ${escapeHtml(r.company)}`)}</td><td>${statusSelect(r.sheetRow,'offer',offer,`Оффер: ${escapeHtml(r.company)}`)}</td></tr>`;}).join('')}</tbody></table>`;
+  root.querySelectorAll('.status-select').forEach(select=>select.addEventListener('change',()=>{
+    const row=Number(select.dataset.row),record=records.find(x=>x.sheetRow===row);if(!record)return;
     const current=pendingStatuses.get(row)||{invited:record.invited,offer:record.offer};
-    current[box.dataset.status]=box.checked;
-    if(current.invited===record.invited&&current.offer===record.offer)pendingStatuses.delete(row);
-    else pendingStatuses.set(row,current);
-    tr.querySelectorAll('.status-check').forEach(input=>{
-      const staged=pendingStatuses.get(row);
-      input.classList.toggle('pending',!!staged);
-    });
+    current[select.dataset.status]=select.value==='true';
+    if(current.invited===record.invited&&current.offer===record.offer)pendingStatuses.delete(row);else pendingStatuses.set(row,current);
+    const staged=pendingStatuses.has(row);root.querySelectorAll(`select[data-row="${row}"]`).forEach(el=>el.classList.toggle('pending',staged));
     updateStatusSaveButton();
   }));
 }
-
 function updateStatusSaveButton(){
   const btn=$('saveStatuses');if(!btn)return;
   const count=pendingStatuses.size;btn.disabled=count===0;
@@ -587,7 +606,7 @@ async function savePendingStatuses(){
   }catch(e){
     $('statusSaveHint').textContent=e.message||String(e);
     $('statusSaveHint').style.color='var(--danger)';
-  }finally{btn.textContent='Добавить отклик/оффер';updateStatusSaveButton();}
+  }finally{btn.textContent='Добавить';updateStatusSaveButton();}
 }
 
 function postAppsScript(payload){
@@ -654,6 +673,8 @@ async function submitRecords(){
 }
 $('openAdd').addEventListener('click',()=>{if(records.length){$('recordGroups').replaceChildren();recordGroupId=0;addRecordGroup();renderRecordsTable();showView('add');}else{formMessage('Сначала дождись загрузки данных аналитики.');showView('add');if(!$('recordGroups').children.length)addRecordGroup();}});
 $('backToAnalytics').addEventListener('click',()=>showView('analytics'));
+document.querySelectorAll('.nav-btn').forEach(btn=>btn.addEventListener('click',()=>{if(btn.dataset.view==='add'&&!$('recordGroups').children.length)addRecordGroup();if(btn.dataset.view==='add')renderRecordsTable();showView(btn.dataset.view);}));
+$('collapseSidebar').addEventListener('click',()=>{const side=$('sidebar');side.classList.toggle('collapsed');$('collapseSidebar').textContent=side.classList.contains('collapsed')?'⇥':'⇤';});
 $('recordSearch').addEventListener('input',renderRecordsTable);
 $('saveStatuses').addEventListener('click',savePendingStatuses);
 $('addRecord').addEventListener('click',addRecordGroup);
