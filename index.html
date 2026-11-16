@@ -356,29 +356,45 @@ function renderHiringFunnel(){
   const root=$('hiringFunnel');
   const total=records.length,invited=records.filter(r=>r.invited).length,offers=records.filter(r=>r.offer).length;
   if(!total){root.innerHTML='<div class="empty">Нет данных для воронки.</div>';return;}
-  const center=360,topWidths=[600,Math.max(180,600*invited/total),Math.max(150,600*offers/total)];
-  const labels=[
-    {title:'ОТКЛИКИ',value:total,rate:100,grad:'url(#g1)'},
-    {title:'ПРИГЛАШЕНИЯ',value:invited,rate:invited/total*100,grad:'url(#g2)'},
-    {title:'ОФФЕРЫ',value:offers,rate:offers/total*100,grad:'url(#g3)'}
+
+  // Ширина каждого следующего уровня отражает долю от общего числа откликов.
+  // Минимальная ширина сохраняет читаемость, даже если приглашений или офферов пока нет.
+  const center=370;
+  const widths=[
+    650,
+    Math.max(260,650*invited/total),
+    Math.max(205,650*offers/total)
   ];
-  let svg=`<svg class="funnel-svg" viewBox="0 0 740 355" role="img" aria-label="Воронка откликов, приглашений и офферов">
-  <defs>
-    <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#a4c7ff"/><stop offset=".55" stop-color="#528cf0"/><stop offset="1" stop-color="#2754a2"/></linearGradient>
-    <linearGradient id="g2" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#a6f0c0"/><stop offset=".55" stop-color="#51bd83"/><stop offset="1" stop-color="#23734d"/></linearGradient>
-    <linearGradient id="g3" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#e2b8ff"/><stop offset=".55" stop-color="#a76be1"/><stop offset="1" stop-color="#653a9d"/></linearGradient>
-    <linearGradient id="side" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#080d16" stop-opacity=".08"/><stop offset="1" stop-color="#080d16" stop-opacity=".55"/></linearGradient>
-  </defs>`;
+  const labels=[
+    {title:'ОТКЛИКИ',value:total,rate:100,grad:'url(#funnelBlue)'},
+    {title:'ПРИГЛАШЕНИЯ',value:invited,rate:invited/total*100,grad:'url(#funnelGreen)'},
+    {title:'ОФФЕРЫ',value:offers,rate:offers/total*100,grad:'url(#funnelPurple)'}
+  ];
+  const y0=14,segmentH=88,depth=15;
+  let svg=`<svg class="funnel-svg" viewBox="0 0 760 310" role="img" aria-label="Единая воронка откликов, приглашений и офферов">
+    <defs>
+      <linearGradient id="funnelBlue" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#a9ceff"/><stop offset=".48" stop-color="#5794f4"/><stop offset="1" stop-color="#2860b9"/></linearGradient>
+      <linearGradient id="funnelGreen" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#b0f4cb"/><stop offset=".48" stop-color="#55c98b"/><stop offset="1" stop-color="#21845b"/></linearGradient>
+      <linearGradient id="funnelPurple" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#e7c4ff"/><stop offset=".48" stop-color="#b276e8"/><stop offset="1" stop-color="#7041ad"/></linearGradient>
+      <linearGradient id="funnelSide" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#070d18" stop-opacity=".12"/><stop offset="1" stop-color="#070d18" stop-opacity=".58"/></linearGradient>
+      <filter id="funnelShadow" x="-15%" y="-10%" width="135%" height="135%"><feDropShadow dx="10" dy="12" stdDeviation="7" flood-color="#000" flood-opacity=".32"/></filter>
+    </defs>
+    <g filter="url(#funnelShadow)">`;
   labels.forEach((v,i)=>{
-    const y=12+i*111,h=82,w=topWidths[i],next=i<2?topWidths[i+1]:Math.max(130,w*.82);
-    const x1=center-w/2,x2=center+w/2,nx1=center-next/2,nx2=center+next/2;
-    svg+=`<polygon points="${x1},${y} ${x2},${y} ${nx2},${y+h} ${nx1},${y+h}" fill="${v.grad}" stroke="rgba(255,255,255,.45)" stroke-width="1.2"/>`;
-    svg+=`<polygon points="${x2},${y} ${x2+17},${y+10} ${nx2+17},${y+h+10} ${nx2},${y+h}" fill="url(#side)"/>`;
-    svg+=`<path d="M ${x1+8} ${y+7} L ${x2-8} ${y+7}" stroke="rgba(255,255,255,.32)" stroke-width="2" stroke-linecap="round"/>`;
-    svg+=`<text x="${center}" y="${y+32}" text-anchor="middle" fill="#101827" font-size="14" font-weight="800" letter-spacing="1.5">${v.title}</text>`;
-    svg+=`<text x="${center}" y="${y+60}" text-anchor="middle" fill="#101827" font-size="23" font-weight="900">${v.value.toLocaleString('ru-RU')} <tspan font-size="13" font-weight="700">· ${v.rate.toLocaleString('ru-RU',{maximumFractionDigits:1})}%</tspan></text>`;
+    const y=y0+i*segmentH;
+    const topW=widths[i],bottomW=i<2?widths[i+1]:Math.max(160,widths[i]*.78);
+    const tx1=center-topW/2,tx2=center+topW/2;
+    const bx1=center-bottomW/2,bx2=center+bottomW/2;
+    // Сегменты соприкасаются по общей границе: получается одна непрерывная воронка.
+    svg+=`<polygon points="${tx2},${y} ${tx2+depth},${y+8} ${bx2+depth},${y+segmentH+8} ${bx2},${y+segmentH}" fill="url(#funnelSide)"/>`;
+    svg+=`<polygon points="${tx1},${y} ${tx2},${y} ${bx2},${y+segmentH} ${bx1},${y+segmentH}" fill="${v.grad}" stroke="rgba(255,255,255,.38)" stroke-width="1.2"/>`;
+    svg+=`<path d="M ${tx1+12} ${y+5} L ${tx2-12} ${y+5}" stroke="rgba(255,255,255,.42)" stroke-width="2" stroke-linecap="round"/>`;
+    if(i>0) svg+=`<path d="M ${tx1+4} ${y} L ${tx2-4} ${y}" stroke="rgba(255,255,255,.65)" stroke-width="1.5"/>`;
+    const labelY=y+34;
+    svg+=`<text x="${center}" y="${labelY}" text-anchor="middle" fill="#101827" font-size="14" font-weight="850" letter-spacing="1.4">${v.title}</text>`;
+    svg+=`<text x="${center}" y="${y+63}" text-anchor="middle" fill="#101827" font-size="23" font-weight="900">${v.value.toLocaleString('ru-RU')} <tspan font-size="13" font-weight="750">· ${v.rate.toLocaleString('ru-RU',{maximumFractionDigits:1})}%</tspan></text>`;
   });
-  svg+='</svg>';
+  svg+='</g></svg>';
   const inviteRate=invited/total*100,offerRate=offers/total*100,offerFromInvite=invited?offers/invited*100:0;
   root.innerHTML=svg+`<div class="funnel-caption">
     <div class="funnel-kpi"><span>Конверсия отклик → приглашение</span><strong>${inviteRate.toLocaleString('ru-RU',{maximumFractionDigits:1})}%</strong></div>
