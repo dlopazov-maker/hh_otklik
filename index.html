@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Аналитика откликов</title>
+<title>ЛК соискателя</title>
 <style>
 :root{color-scheme:dark;--bg:#10131b;--panel:#191f2b;--panel2:#202938;--line:#30394a;--text:#edf1f7;--muted:#9ca8ba;--accent:#77a9ff;--danger:#ff8585;--green:#8bd5a7}
 *{box-sizing:border-box}body{margin:0;padding:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
 .app-shell{display:flex;min-height:100vh;align-items:stretch}
-.sidebar{width:250px;flex:0 0 250px;background:#171e2a;border-right:1px solid var(--line);padding:18px 12px;transition:width .2s,flex-basis .2s;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:16px;z-index:5}
+.sidebar{width:310px;flex:0 0 310px;background:#171e2a;border-right:1px solid var(--line);padding:18px 12px;transition:width .2s,flex-basis .2s;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:16px;z-index:5}
 .sidebar.collapsed{width:76px;flex-basis:76px}
 .brand-row{display:flex;align-items:center;gap:10px;padding:4px 8px;min-height:42px}.brand-mark{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#78aaff,#7454c8);display:grid;place-items:center;color:#101827;font-weight:900;flex:0 0 34px}.brand-name{font-weight:800;white-space:nowrap;overflow:hidden}.collapse-btn,.nav-btn{background:transparent;color:#c5cfdd;border:1px solid transparent;text-align:left;display:flex;align-items:center;gap:13px;width:100%;padding:11px 12px;border-radius:10px;font-weight:600}.collapse-btn{justify-content:center;border-color:var(--line);margin-top:auto}.nav-btn:hover,.nav-btn.active{background:#29364a;color:#fff;border-color:#3b4b65}.nav-icon{width:22px;flex:0 0 22px;text-align:center;font-size:17px}.nav-label{white-space:nowrap;overflow:hidden}.sidebar.collapsed .brand-name,.sidebar.collapsed .nav-label{display:none}.sidebar.collapsed .nav-btn{justify-content:center;padding:12px 8px}.app-main{flex:1;min-width:0;max-width:1500px;margin:0 auto;padding:26px;width:100%}
 .app-main .add-view{width:100%;max-width:none;left:auto;transform:none}
@@ -124,7 +124,7 @@ button{background:var(--accent);color:#101827;border:0;border-radius:9px;padding
 <body>
 <div class="app-shell">
 <aside id="sidebar" class="sidebar">
-  <div class="brand-row"><div class="brand-mark">CS</div><div class="brand-name">CS Intelligence</div></div>
+  <div class="brand-row"><div class="brand-mark">ЛК</div><div class="brand-name">ЛК соискателя</div></div>
   <nav aria-label="Основное меню">
     <button type="button" class="nav-btn active" data-view="analytics"><span class="nav-icon">▥</span><span class="nav-label">Аналитика</span></button>
     <button type="button" class="nav-btn" data-view="add"><span class="nav-icon">▤</span><span class="nav-label">Отклики и приглашения</span></button>
@@ -137,7 +137,7 @@ button{background:var(--accent);color:#101827;border:0;border-radius:9px;padding
 <section id="analyticsView">
   <h1>Аналитика откликов</h1>
   <div class="subtitle">Статистика по датам откликов и компаниям из Google Sheets</div>
-  <div class="toolbar"><button id="openAdd" type="button" class="secondary-button">＋ Добавить отклик</button><button id="refresh" type="button">Обновить данные</button></div>
+  <div class="toolbar"><button id="refresh" type="button">Обновить данные</button></div>
   <div id="status" class="status">Загружаю данные из Google Sheets…</div>
 
   <section class="cards">
@@ -195,7 +195,6 @@ button{background:var(--accent);color:#101827;border:0;border-radius:9px;padding
       <h1>Добавление откликов</h1>
       <div class="subtitle">Добавь один или несколько откликов в Google Sheets.</div>
     </div>
-    <button id="backToAnalytics" type="button" class="secondary-button">← К аналитике</button>
   </div>
   <div class="panel form-panel">
     <div class="form-intro">
@@ -219,7 +218,7 @@ button{background:var(--accent);color:#101827;border:0;border-radius:9px;padding
   </section>
 </section>
 <section id="placeholderView" class="placeholder-view" hidden>
-  <div class="placeholder-card"><h1 id="placeholderTitle">Раздел в разработке</h1><p>Этот раздел появится в одной из следующих версий CS Intelligence.</p></div>
+  <div class="placeholder-card"><h1 id="placeholderTitle">Раздел в разработке</h1><p>Этот раздел появится в одной из следующих версий личного кабинета соискателя.</p></div>
 </section>
 </main>
 </div>
@@ -671,8 +670,6 @@ async function submitRecords(){
   }catch(e){formMessage(e.message||String(e),'error');}
   finally{btn.disabled=false;}
 }
-$('openAdd').addEventListener('click',()=>{if(records.length){$('recordGroups').replaceChildren();recordGroupId=0;addRecordGroup();renderRecordsTable();showView('add');}else{formMessage('Сначала дождись загрузки данных аналитики.');showView('add');if(!$('recordGroups').children.length)addRecordGroup();}});
-$('backToAnalytics').addEventListener('click',()=>showView('analytics'));
 document.querySelectorAll('.nav-btn').forEach(btn=>btn.addEventListener('click',()=>{if(btn.dataset.view==='add'&&!$('recordGroups').children.length)addRecordGroup();if(btn.dataset.view==='add')renderRecordsTable();showView(btn.dataset.view);}));
 $('collapseSidebar').addEventListener('click',()=>{const side=$('sidebar');side.classList.toggle('collapsed');$('collapseSidebar').textContent=side.classList.contains('collapsed')?'⇥':'⇤';});
 $('recordSearch').addEventListener('input',renderRecordsTable);
